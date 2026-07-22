@@ -667,14 +667,102 @@ h2 {
   align-items: start;
 }
 
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.map-stage {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.map-frame {
+  width: 100%;
+  min-height: 430px;
+  aspect-ratio: 16 / 10;
+  display: block;
+  border: 0;
+  background: #d9e4e0;
+}
+
+.map-detail {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.map-detail p {
+  margin: 6px 0 0;
+  color: #405057;
+  line-height: 1.45;
+}
+
+.map-place-list {
+  display: grid;
+  gap: 8px;
+  max-height: 640px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.map-day-group {
+  display: grid;
+  gap: 7px;
+}
+
+.map-day-group + .map-day-group {
+  margin-top: 8px;
+}
+
+.map-place-card {
+  width: 100%;
+  min-height: 72px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.map-place-card[aria-selected="true"] {
+  border-color: rgba(40, 111, 158, 0.65);
+  background: #eaf4f8;
+}
+
+.map-place-card strong,
+.map-place-card span {
+  display: block;
+}
+
+.map-place-card strong {
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.map-place-card span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .bottom-nav {
   position: fixed;
   left: 50%;
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(4, minmax(64px, 1fr));
-  width: min(520px, calc(100% - 24px));
+  grid-template-columns: repeat(5, minmax(54px, 1fr));
+  width: min(600px, calc(100% - 24px));
   min-height: 68px;
   padding: 8px;
   border: 1px solid rgba(203, 215, 211, 0.9);
@@ -748,6 +836,24 @@ h2 {
   border-bottom: 2px solid currentColor;
 }
 
+.nav-icon-map::before {
+  left: 5px;
+  top: 3px;
+  width: 12px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 9px 9px 10px 10px;
+}
+
+.nav-icon-map::after {
+  left: 9px;
+  top: 7px;
+  width: 4px;
+  height: 4px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
 .nav-icon-expense::before {
   left: 3px;
   top: 5px;
@@ -789,7 +895,8 @@ h2 {
   .topbar,
   .content-grid,
   .journal-layout,
-  .prep-grid {
+  .prep-grid,
+  .map-layout {
     grid-template-columns: 1fr;
   }
 
@@ -853,6 +960,20 @@ h2 {
 
   .expense-form {
     grid-template-columns: 1fr;
+  }
+
+  .map-frame {
+    min-height: 320px;
+  }
+
+  .map-detail {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .map-place-list {
+    max-height: none;
+    overflow: visible;
   }
 
   .next-card {

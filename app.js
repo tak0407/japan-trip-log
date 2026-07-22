@@ -344,11 +344,12 @@ const DEFAULT_PACKING = [
 ];
 
 const STORAGE_KEY = "japan-trip-log:v1";
-const VIEWS = ["schedule", "journal", "expense", "prep"];
+const VIEWS = ["schedule", "map", "journal", "expense", "prep"];
 
 const state = loadState();
 let selectedDayId = state.selectedDayId || TRIP_DAYS[0].id;
 let activeView = VIEWS.includes(state.activeView) ? state.activeView : "schedule";
+let selectedMapStopId = state.selectedMapStopId || "";
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -366,6 +367,13 @@ const nodes = {
   journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
+  mapFrame: document.querySelector("#mapFrame"),
+  mapPlaceDay: document.querySelector("#mapPlaceDay"),
+  mapPlaceTitle: document.querySelector("#mapPlaceTitle"),
+  mapPlaceMeta: document.querySelector("#mapPlaceMeta"),
+  mapOpenLink: document.querySelector("#mapOpenLink"),
+  mapPlaceList: document.querySelector("#mapPlaceList"),
+  mapCount: document.querySelector("#mapCount"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -390,7 +398,8 @@ function loadState() {
     journal: [],
     expenses: [],
     selectedDayId: TRIP_DAYS[0].id,
-    activeView: "schedule"
+    activeView: "schedule",
+    selectedMapStopId: ""
   };
 
   try {
@@ -406,6 +415,7 @@ function loadState() {
 function persist() {
   state.selectedDayId = selectedDayId;
   state.activeView = activeView;
+  state.selectedMapStopId = selectedMapStopId;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -430,8 +440,32 @@ function getAllStops() {
   return TRIP_DAYS.flatMap((day) => day.stops);
 }
 
+function getMappableStops() {
+  return TRIP_DAYS.flatMap((day) => day.stops
+    .filter((stop) => stop.map)
+    .map((stop) => ({ ...stop, dayId: day.id, dayLabel: day.label, dayTitle: day.title })));
+}
+
 function getSelectedDay() {
   return TRIP_DAYS.find((day) => day.id === selectedDayId) || TRIP_DAYS[0];
+}
+
+function getStopMapQuery(stop) {
+  if (!stop) return "Tokyo Japan";
+  try {
+    const url = new URL(stop.map);
+    return url.searchParams.get("query") || url.searchParams.get("q") || `${stop.title} ${stop.area} Japan`;
+  } catch (error) {
+    return `${stop.title} ${stop.area} Japan`;
+  }
+}
+
+function getSelectedMapStop() {
+  const mappableStops = getMappableStops();
+  const selected = mappableStops.find((stop) => stop.id === selectedMapStopId);
+  if (selected) return selected;
+  const sameDay = mappableStops.find((stop) => stop.dayId === selectedDayId);
+  return sameDay || mappableStops[0];
 }
 
 function getDayProgress(day) {
@@ -446,6 +480,7 @@ function render() {
   renderDayTabs();
   renderNextStop();
   renderStops();
+  renderMap();
   renderJournalFormDays();
   renderJournal();
   renderPacking();
@@ -539,7 +574,7 @@ function renderStops() {
       : "";
     const note = stop.note ? `<p class="stop-note">${escapeHTML(stop.note)}</p>` : "";
     const map = stop.map
-      ? `<a class="map-link" href="${escapeHTML(stop.map)}" target="_blank" rel="noreferrer">지도</a>`
+      ? `<button class="small-action map-action" type="button" data-map-stop-id="${stop.id}">지도</button>`
       : "";
     const actions = `
       <div class="stop-actions">
@@ -564,6 +599,47 @@ function renderStops() {
           ${items}
           ${note}
         </div>
+      </section>
+    `;
+  }).join("");
+}
+
+function renderMap() {
+  const mappableStops = getMappableStops();
+  const selected = getSelectedMapStop();
+
+  nodes.mapCount.textContent = `${mappableStops.length}곳`;
+
+  if (!selected) {
+    nodes.mapFrame.removeAttribute("src");
+    nodes.mapPlaceTitle.textContent = "지도";
+    nodes.mapPlaceDay.textContent = "장소";
+    nodes.mapPlaceMeta.textContent = "";
+    nodes.mapOpenLink.href = "#";
+    nodes.mapPlaceList.innerHTML = '<p class="empty-state">표시할 장소가 없습니다.</p>';
+    return;
+  }
+
+  selectedMapStopId = selected.id;
+  const query = getStopMapQuery(selected);
+  nodes.mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+  nodes.mapPlaceDay.textContent = `${selected.dayLabel} · ${selected.dayTitle}`;
+  nodes.mapPlaceTitle.textContent = selected.title;
+  nodes.mapPlaceMeta.textContent = `${selected.time} · ${selected.area} · ${selected.type}`;
+  nodes.mapOpenLink.href = selected.map;
+
+  nodes.mapPlaceList.innerHTML = TRIP_DAYS.map((day) => {
+    const stops = mappableStops.filter((stop) => stop.dayId === day.id);
+    if (!stops.length) return "";
+    return `
+      <section class="map-day-group">
+        <p class="packing-title">${escapeHTML(day.label)} · ${escapeHTML(day.title)}</p>
+        ${stops.map((stop) => `
+          <button class="map-place-card" type="button" data-map-list-stop-id="${stop.id}" aria-selected="${stop.id === selectedMapStopId ? "true" : "false"}">
+            <strong>${escapeHTML(stop.title)}</strong>
+            <span>${escapeHTML(stop.time)} · ${escapeHTML(stop.area)}</span>
+          </button>
+        `).join("")}
       </section>
     `;
   }).join("");
@@ -715,7 +791,7 @@ function drawRouteCanvas() {
   const h = height / ratio;
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#f8ead5";
+  ctx.fillStyle = "#dfecef";
   ctx.fillRect(0, 0, w, h);
 
   ctx.fillStyle = "rgba(40, 111, 158, 0.10)";
@@ -753,7 +829,7 @@ function drawRouteCanvas() {
   points.forEach((point, index) => {
     const x = point.x * w;
     const y = point.y * h;
-    ctx.fillStyle = index === 0 ? "#2d7a58" : "#fffdf7";
+    ctx.fillStyle = index === 0 ? "#2d7a58" : "#ffffff";
     ctx.strokeStyle = index === points.length - 1 ? "#b7791f" : "#286f9e";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -794,6 +870,16 @@ nodes.stopList.addEventListener("change", (event) => {
 });
 
 nodes.stopList.addEventListener("click", (event) => {
+  const mapButton = event.target.closest("[data-map-stop-id]");
+  if (mapButton) {
+    selectedMapStopId = mapButton.dataset.mapStopId;
+    activeView = "map";
+    persist();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
   const button = event.target.closest("[data-log-stop-id]");
   if (!button) return;
   const day = getSelectedDay();
@@ -806,6 +892,17 @@ nodes.stopList.addEventListener("click", (event) => {
   nodes.journalForm.elements.title.value = stop.title;
   nodes.journalForm.elements.note.focus();
   window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+nodes.mapPlaceList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-map-list-stop-id]");
+  if (!button) return;
+  const stop = getMappableStops().find((item) => item.id === button.dataset.mapListStopId);
+  if (!stop) return;
+  selectedMapStopId = stop.id;
+  selectedDayId = stop.dayId;
+  persist();
+  render();
 });
 
 nodes.packingList.addEventListener("change", (event) => {
@@ -913,6 +1010,7 @@ nodes.importInput.addEventListener("change", async (event) => {
     state.expenses = Array.isArray(imported.expenses) ? imported.expenses : [];
     selectedDayId = imported.selectedDayId || selectedDayId;
     activeView = VIEWS.includes(imported.activeView) ? imported.activeView : activeView;
+    selectedMapStopId = imported.selectedMapStopId || selectedMapStopId;
     persist();
     render();
   } catch (error) {
@@ -928,6 +1026,7 @@ nodes.resetButton.addEventListener("click", () => {
   localStorage.removeItem(STORAGE_KEY);
   Object.assign(state, loadState());
   selectedDayId = TRIP_DAYS[0].id;
+  selectedMapStopId = "";
   activeView = "schedule";
   render();
 });

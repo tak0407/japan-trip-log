@@ -98,6 +98,39 @@
           </article>
         </section>
 
+        <section class="tab-panel" id="mapPanel" data-view-panel="map" hidden>
+          <article class="panel map-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">지도</p>
+                <h2>장소 지도</h2>
+              </div>
+              <span class="status-pill" id="mapCount">0곳</span>
+            </div>
+            <div class="map-layout">
+              <section class="map-stage" aria-label="선택한 장소 지도">
+                <iframe
+                  class="map-frame"
+                  id="mapFrame"
+                  title="선택한 장소 지도"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  allowfullscreen>
+                </iframe>
+                <div class="map-detail">
+                  <div>
+                    <p class="panel-kicker" id="mapPlaceDay">장소</p>
+                    <h2 id="mapPlaceTitle">지도</h2>
+                    <p id="mapPlaceMeta"></p>
+                  </div>
+                  <a class="button ghost" id="mapOpenLink" href="#" target="_blank" rel="noreferrer">크게 보기</a>
+                </div>
+              </section>
+              <section class="map-place-list" id="mapPlaceList" aria-label="장소 목록"></section>
+            </div>
+          </article>
+        </section>
+
         <section class="tab-panel" id="expensePanel" data-view-panel="expense" hidden>
           <article class="panel expenses-panel">
             <div class="panel-heading">
@@ -181,6 +214,10 @@
       <button class="bottom-nav-item" type="button" data-view="schedule" aria-current="page" aria-controls="schedulePanel">
         <span class="nav-icon nav-icon-schedule" aria-hidden="true"></span>
         <span>일정</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-view="map" aria-controls="mapPanel">
+        <span class="nav-icon nav-icon-map" aria-hidden="true"></span>
+        <span>지도</span>
       </button>
       <button class="bottom-nav-item" type="button" data-view="journal" aria-controls="journalPanel">
         <span class="nav-icon nav-icon-journal" aria-hidden="true"></span>
