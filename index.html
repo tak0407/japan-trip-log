@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="2026 일본 여행 일정 체크와 여행 기록을 관리하는 공유 웹앱">
+    <title>Japan Trip Log</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="eyebrow">2026.08.11 - 08.15</p>
+          <h1>Japan Trip Log</h1>
+          <p class="subtitle">도쿄, 요코스카, 요코하마, 사이타마, 후지산</p>
+        </div>
+        <div class="route-visual" aria-label="여행 동선 미니맵">
+          <canvas id="routeCanvas" width="520" height="180"></canvas>
+        </div>
+      </header>
+
+      <main>
+        <section class="overview-grid" aria-label="여행 요약">
+          <article class="metric-card">
+            <span class="metric-label">일정 진행</span>
+            <strong id="completionMetric">0%</strong>
+            <div class="meter" aria-hidden="true"><span id="completionBar"></span></div>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">체크한 일정</span>
+            <strong id="checkedMetric">0 / 0</strong>
+            <span class="metric-sub">방문, 이동, 식사 포함</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">기록</span>
+            <strong id="journalMetric">0개</strong>
+            <span class="metric-sub">방문 메모와 여행 노트</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">지출</span>
+            <strong id="expenseMetric">¥0</strong>
+            <span class="metric-sub">현지 입력 기준</span>
+          </article>
+        </section>
+
+        <section class="control-row" aria-label="데이터 관리">
+          <button class="button primary" type="button" id="exportButton">데이터 내보내기</button>
+          <label class="button ghost" for="importInput">데이터 가져오기</label>
+          <input id="importInput" type="file" accept="application/json" hidden>
+          <button class="button danger" type="button" id="resetButton">초기화</button>
+        </section>
+
+        <nav class="day-tabs" aria-label="날짜 선택" id="dayTabs"></nav>
+
+        <section class="content-grid">
+          <article class="panel itinerary-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker" id="selectedDateLabel">일정</p>
+                <h2 id="selectedDayTitle">날짜별 일정</h2>
+              </div>
+              <span class="status-pill" id="selectedDayStatus">0 / 0</span>
+            </div>
+            <div class="stop-list" id="stopList"></div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="panel-kicker">기록</p>
+                  <h2>여행 노트</h2>
+                </div>
+              </div>
+              <form class="entry-form" id="journalForm">
+                <input name="title" type="text" maxlength="40" placeholder="장소나 제목" required>
+                <textarea name="note" rows="4" maxlength="500" placeholder="기록"></textarea>
+                <div class="form-row">
+                  <select name="type" aria-label="기록 유형">
+                    <option value="방문">방문</option>
+                    <option value="식사">식사</option>
+                    <option value="이동">이동</option>
+                    <option value="구매">구매</option>
+                    <option value="기타">기타</option>
+                  </select>
+                  <select name="rating" aria-label="평점">
+                    <option value="5">5점</option>
+                    <option value="4">4점</option>
+                    <option value="3">3점</option>
+                    <option value="2">2점</option>
+                    <option value="1">1점</option>
+                  </select>
+                </div>
+                <button class="button primary full" type="submit">기록 추가</button>
+              </form>
+              <div class="entry-list" id="journalList"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="panel-kicker">준비</p>
+                  <h2>준비물</h2>
+                </div>
+                <span class="status-pill" id="packingStatus">0 / 0</span>
+              </div>
+              <div class="packing-list" id="packingList"></div>
+              <form class="inline-form" id="packingForm">
+                <input name="item" type="text" maxlength="32" placeholder="추가 준비물">
+                <button class="button ghost" type="submit">추가</button>
+              </form>
+            </article>
+          </aside>
+        </section>
+
+        <section class="panel expenses-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">예산</p>
+              <h2>지출 기록</h2>
+            </div>
+            <span class="status-pill" id="expenseCount">0건</span>
+          </div>
+          <form class="expense-form" id="expenseForm">
+            <select name="dayId" aria-label="지출 날짜" id="expenseDay"></select>
+            <select name="category" aria-label="지출 분류">
+              <option value="식비">식비</option>
+              <option value="교통">교통</option>
+              <option value="입장권">입장권</option>
+              <option value="쇼핑">쇼핑</option>
+              <option value="숙소">숙소</option>
+              <option value="기타">기타</option>
+            </select>
+            <input name="amount" type="number" min="0" step="1" placeholder="엔" required>
+            <input name="payer" type="text" maxlength="20" placeholder="결제자">
+            <input name="memo" type="text" maxlength="60" placeholder="메모">
+            <button class="button primary" type="submit">지출 추가</button>
+          </form>
+          <div class="expense-summary" id="expenseSummary"></div>
+          <div class="expense-table-wrap">
+            <table class="expense-table">
+              <thead>
+                <tr>
+                  <th>날짜</th>
+                  <th>분류</th>
+                  <th>금액</th>
+                  <th>결제자</th>
+                  <th>메모</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="expenseRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
