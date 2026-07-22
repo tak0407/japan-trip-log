@@ -344,9 +344,11 @@ const DEFAULT_PACKING = [
 ];
 
 const STORAGE_KEY = "japan-trip-log:v1";
+const VIEWS = ["schedule", "journal", "expense", "prep"];
 
 const state = loadState();
 let selectedDayId = state.selectedDayId || TRIP_DAYS[0].id;
+let activeView = VIEWS.includes(state.activeView) ? state.activeView : "schedule";
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -358,9 +360,12 @@ const nodes = {
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   selectedDayTitle: document.querySelector("#selectedDayTitle"),
   selectedDayStatus: document.querySelector("#selectedDayStatus"),
+  nextStopCard: document.querySelector("#nextStopCard"),
   stopList: document.querySelector("#stopList"),
   journalForm: document.querySelector("#journalForm"),
+  journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
+  journalCount: document.querySelector("#journalCount"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -372,7 +377,9 @@ const nodes = {
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
   resetButton: document.querySelector("#resetButton"),
-  routeCanvas: document.querySelector("#routeCanvas")
+  routeCanvas: document.querySelector("#routeCanvas"),
+  bottomNav: document.querySelector("#bottomNav"),
+  viewPanels: document.querySelectorAll("[data-view-panel]")
 };
 
 function loadState() {
@@ -382,7 +389,8 @@ function loadState() {
     customPacking: [],
     journal: [],
     expenses: [],
-    selectedDayId: TRIP_DAYS[0].id
+    selectedDayId: TRIP_DAYS[0].id,
+    activeView: "schedule"
   };
 
   try {
@@ -397,6 +405,7 @@ function loadState() {
 
 function persist() {
   state.selectedDayId = selectedDayId;
+  state.activeView = activeView;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -432,14 +441,33 @@ function getDayProgress(day) {
 }
 
 function render() {
+  renderActiveView();
   renderMetrics();
   renderDayTabs();
+  renderNextStop();
   renderStops();
+  renderJournalFormDays();
   renderJournal();
   renderPacking();
   renderExpenseFormDays();
   renderExpenses();
   drawRouteCanvas();
+}
+
+function renderActiveView() {
+  nodes.viewPanels.forEach((panel) => {
+    const isActive = panel.dataset.viewPanel === activeView;
+    panel.hidden = !isActive;
+    panel.classList.toggle("is-active", isActive);
+  });
+
+  nodes.bottomNav.querySelectorAll("[data-view]").forEach((button) => {
+    if (button.dataset.view === activeView) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
 }
 
 function renderMetrics() {
@@ -453,6 +481,33 @@ function renderMetrics() {
   nodes.checkedMetric.textContent = `${checked} / ${allStops.length}`;
   nodes.journalMetric.textContent = `${state.journal.length}개`;
   nodes.expenseMetric.textContent = formatYen(expenseTotal);
+}
+
+function renderNextStop() {
+  const day = getSelectedDay();
+  const nextStop = day.stops.find((stop) => !state.checkedStops[stop.id]);
+  const progress = getDayProgress(day);
+
+  if (!nextStop) {
+    nodes.nextStopCard.innerHTML = `
+      <div>
+        <p class="panel-kicker">${escapeHTML(day.label)}</p>
+        <h2>오늘 일정 완료</h2>
+        <p>${escapeHTML(day.title)} 일정이 모두 체크됐습니다.</p>
+      </div>
+      <span class="status-pill">${progress.done} / ${progress.total}</span>
+    `;
+    return;
+  }
+
+  nodes.nextStopCard.innerHTML = `
+    <div>
+      <p class="panel-kicker">다음 일정</p>
+      <h2>${escapeHTML(nextStop.time)} · ${escapeHTML(nextStop.title)}</h2>
+      <p>${escapeHTML(nextStop.area)} · ${escapeHTML(nextStop.type)}</p>
+    </div>
+    <span class="status-pill">${progress.done} / ${progress.total}</span>
+  `;
 }
 
 function renderDayTabs() {
@@ -486,6 +541,12 @@ function renderStops() {
     const map = stop.map
       ? `<a class="map-link" href="${escapeHTML(stop.map)}" target="_blank" rel="noreferrer">지도</a>`
       : "";
+    const actions = `
+      <div class="stop-actions">
+        ${map}
+        <button class="small-action" type="button" data-log-stop-id="${stop.id}">기록</button>
+      </div>
+    `;
 
     return `
       <section class="stop-card">
@@ -493,7 +554,7 @@ function renderStops() {
         <div>
           <div class="stop-topline">
             <span class="stop-time">${escapeHTML(stop.time)}</span>
-            ${map}
+            ${actions}
           </div>
           <h3 class="stop-title">${escapeHTML(stop.title)}</h3>
           <div class="stop-meta">
@@ -508,17 +569,28 @@ function renderStops() {
   }).join("");
 }
 
+function renderJournalFormDays() {
+  const currentValue = nodes.journalDay.value || selectedDayId;
+  nodes.journalDay.innerHTML = TRIP_DAYS.map((day) => (
+    `<option value="${day.id}">${escapeHTML(day.label)} ${escapeHTML(day.title)}</option>`
+  )).join("");
+  nodes.journalDay.value = TRIP_DAYS.some((day) => day.id === currentValue) ? currentValue : selectedDayId;
+}
+
 function renderJournal() {
-  const dayEntries = state.journal
-    .filter((entry) => entry.dayId === selectedDayId)
+  const entries = [...state.journal]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-  if (!dayEntries.length) {
+  nodes.journalCount.textContent = `${state.journal.length}개`;
+
+  if (!entries.length) {
     nodes.journalList.innerHTML = '<p class="empty-state">아직 기록이 없습니다.</p>';
     return;
   }
 
-  nodes.journalList.innerHTML = dayEntries.map((entry) => `
+  nodes.journalList.innerHTML = entries.map((entry) => {
+    const day = TRIP_DAYS.find((item) => item.id === entry.dayId);
+    return `
     <article class="entry-card">
       <header>
         <h3>${escapeHTML(entry.title)}</h3>
@@ -526,11 +598,12 @@ function renderJournal() {
       </header>
       <p>${escapeHTML(entry.note || "")}</p>
       <footer>
-        <span>${escapeHTML(entry.rating)}점</span>
+        <span>${escapeHTML(day ? day.label : entry.dayId)} · ${escapeHTML(entry.rating)}점</span>
         <button class="link-button" type="button" data-delete-journal="${entry.id}">삭제</button>
       </footer>
     </article>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function renderPacking() {
@@ -697,8 +770,19 @@ nodes.dayTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-day-id]");
   if (!button) return;
   selectedDayId = button.dataset.dayId;
+  nodes.journalDay.value = selectedDayId;
+  nodes.expenseDay.value = selectedDayId;
   persist();
   render();
+});
+
+nodes.bottomNav.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-view]");
+  if (!button) return;
+  activeView = button.dataset.view;
+  persist();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 nodes.stopList.addEventListener("change", (event) => {
@@ -707,6 +791,21 @@ nodes.stopList.addEventListener("change", (event) => {
   state.checkedStops[input.dataset.stopId] = input.checked;
   persist();
   render();
+});
+
+nodes.stopList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-log-stop-id]");
+  if (!button) return;
+  const day = getSelectedDay();
+  const stop = day.stops.find((item) => item.id === button.dataset.logStopId);
+  if (!stop) return;
+  activeView = "journal";
+  persist();
+  render();
+  nodes.journalDay.value = selectedDayId;
+  nodes.journalForm.elements.title.value = stop.title;
+  nodes.journalForm.elements.note.focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 nodes.packingList.addEventListener("change", (event) => {
@@ -722,7 +821,7 @@ nodes.journalForm.addEventListener("submit", (event) => {
   const form = new FormData(nodes.journalForm);
   state.journal.push({
     id: `journal-${crypto.randomUUID()}`,
-    dayId: selectedDayId,
+    dayId: String(form.get("dayId") || selectedDayId),
     title: String(form.get("title") || "").trim(),
     note: String(form.get("note") || "").trim(),
     type: String(form.get("type") || "기타"),
@@ -813,6 +912,7 @@ nodes.importInput.addEventListener("change", async (event) => {
     state.journal = Array.isArray(imported.journal) ? imported.journal : [];
     state.expenses = Array.isArray(imported.expenses) ? imported.expenses : [];
     selectedDayId = imported.selectedDayId || selectedDayId;
+    activeView = VIEWS.includes(imported.activeView) ? imported.activeView : activeView;
     persist();
     render();
   } catch (error) {
@@ -828,6 +928,7 @@ nodes.resetButton.addEventListener("click", () => {
   localStorage.removeItem(STORAGE_KEY);
   Object.assign(state, loadState());
   selectedDayId = TRIP_DAYS[0].id;
+  activeView = "schedule";
   render();
 });
 

@@ -20,40 +20,35 @@
         </div>
       </header>
 
-      <main>
-        <section class="overview-grid" aria-label="여행 요약">
-          <article class="metric-card">
-            <span class="metric-label">일정 진행</span>
-            <strong id="completionMetric">0%</strong>
-            <div class="meter" aria-hidden="true"><span id="completionBar"></span></div>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">체크한 일정</span>
-            <strong id="checkedMetric">0 / 0</strong>
-            <span class="metric-sub">방문, 이동, 식사 포함</span>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">기록</span>
-            <strong id="journalMetric">0개</strong>
-            <span class="metric-sub">방문 메모와 여행 노트</span>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">지출</span>
-            <strong id="expenseMetric">¥0</strong>
-            <span class="metric-sub">현지 입력 기준</span>
-          </article>
-        </section>
+      <main class="tab-content">
+        <section class="tab-panel is-active" id="schedulePanel" data-view-panel="schedule">
+          <section class="overview-grid" aria-label="여행 요약">
+            <article class="metric-card">
+              <span class="metric-label">일정 진행</span>
+              <strong id="completionMetric">0%</strong>
+              <div class="meter" aria-hidden="true"><span id="completionBar"></span></div>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">체크한 일정</span>
+              <strong id="checkedMetric">0 / 0</strong>
+              <span class="metric-sub">방문, 이동, 식사 포함</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">기록</span>
+              <strong id="journalMetric">0개</strong>
+              <span class="metric-sub">방문 메모와 여행 노트</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">지출</span>
+              <strong id="expenseMetric">¥0</strong>
+              <span class="metric-sub">현지 입력 기준</span>
+            </article>
+          </section>
 
-        <section class="control-row" aria-label="데이터 관리">
-          <button class="button primary" type="button" id="exportButton">데이터 내보내기</button>
-          <label class="button ghost" for="importInput">데이터 가져오기</label>
-          <input id="importInput" type="file" accept="application/json" hidden>
-          <button class="button danger" type="button" id="resetButton">초기화</button>
-        </section>
+          <nav class="day-tabs" aria-label="날짜 선택" id="dayTabs"></nav>
 
-        <nav class="day-tabs" aria-label="날짜 선택" id="dayTabs"></nav>
+          <article class="next-card" id="nextStopCard"></article>
 
-        <section class="content-grid">
           <article class="panel itinerary-panel">
             <div class="panel-heading">
               <div>
@@ -64,18 +59,22 @@
             </div>
             <div class="stop-list" id="stopList"></div>
           </article>
+        </section>
 
-          <aside class="side-stack">
-            <article class="panel">
-              <div class="panel-heading compact">
-                <div>
-                  <p class="panel-kicker">기록</p>
-                  <h2>여행 노트</h2>
-                </div>
+        <section class="tab-panel" id="journalPanel" data-view-panel="journal" hidden>
+          <article class="panel journal-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">기록</p>
+                <h2>여행 노트</h2>
               </div>
+              <span class="status-pill" id="journalCount">0개</span>
+            </div>
+            <div class="journal-layout">
               <form class="entry-form" id="journalForm">
+                <select name="dayId" aria-label="기록 날짜" id="journalDay"></select>
                 <input name="title" type="text" maxlength="40" placeholder="장소나 제목" required>
-                <textarea name="note" rows="4" maxlength="500" placeholder="기록"></textarea>
+                <textarea name="note" rows="5" maxlength="500" placeholder="기록"></textarea>
                 <div class="form-row">
                   <select name="type" aria-label="기록 유형">
                     <option value="방문">방문</option>
@@ -95,8 +94,55 @@
                 <button class="button primary full" type="submit">기록 추가</button>
               </form>
               <div class="entry-list" id="journalList"></div>
-            </article>
+            </div>
+          </article>
+        </section>
 
+        <section class="tab-panel" id="expensePanel" data-view-panel="expense" hidden>
+          <article class="panel expenses-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">예산</p>
+                <h2>지출 기록</h2>
+              </div>
+              <span class="status-pill" id="expenseCount">0건</span>
+            </div>
+            <form class="expense-form" id="expenseForm">
+              <select name="dayId" aria-label="지출 날짜" id="expenseDay"></select>
+              <select name="category" aria-label="지출 분류">
+                <option value="식비">식비</option>
+                <option value="교통">교통</option>
+                <option value="입장권">입장권</option>
+                <option value="쇼핑">쇼핑</option>
+                <option value="숙소">숙소</option>
+                <option value="기타">기타</option>
+              </select>
+              <input name="amount" type="number" min="0" step="1" placeholder="엔" required>
+              <input name="payer" type="text" maxlength="20" placeholder="결제자">
+              <input name="memo" type="text" maxlength="60" placeholder="메모">
+              <button class="button primary" type="submit">지출 추가</button>
+            </form>
+            <div class="expense-summary" id="expenseSummary"></div>
+            <div class="expense-table-wrap">
+              <table class="expense-table">
+                <thead>
+                  <tr>
+                    <th>날짜</th>
+                    <th>분류</th>
+                    <th>금액</th>
+                    <th>결제자</th>
+                    <th>메모</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="expenseRows"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="tab-panel" id="prepPanel" data-view-panel="prep" hidden>
+          <div class="prep-grid">
             <article class="panel">
               <div class="panel-heading compact">
                 <div>
@@ -111,51 +157,44 @@
                 <button class="button ghost" type="submit">추가</button>
               </form>
             </article>
-          </aside>
-        </section>
 
-        <section class="panel expenses-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="panel-kicker">예산</p>
-              <h2>지출 기록</h2>
-            </div>
-            <span class="status-pill" id="expenseCount">0건</span>
-          </div>
-          <form class="expense-form" id="expenseForm">
-            <select name="dayId" aria-label="지출 날짜" id="expenseDay"></select>
-            <select name="category" aria-label="지출 분류">
-              <option value="식비">식비</option>
-              <option value="교통">교통</option>
-              <option value="입장권">입장권</option>
-              <option value="쇼핑">쇼핑</option>
-              <option value="숙소">숙소</option>
-              <option value="기타">기타</option>
-            </select>
-            <input name="amount" type="number" min="0" step="1" placeholder="엔" required>
-            <input name="payer" type="text" maxlength="20" placeholder="결제자">
-            <input name="memo" type="text" maxlength="60" placeholder="메모">
-            <button class="button primary" type="submit">지출 추가</button>
-          </form>
-          <div class="expense-summary" id="expenseSummary"></div>
-          <div class="expense-table-wrap">
-            <table class="expense-table">
-              <thead>
-                <tr>
-                  <th>날짜</th>
-                  <th>분류</th>
-                  <th>금액</th>
-                  <th>결제자</th>
-                  <th>메모</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="expenseRows"></tbody>
-            </table>
+            <article class="panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="panel-kicker">공유</p>
+                  <h2>데이터 관리</h2>
+                </div>
+              </div>
+              <section class="control-row" aria-label="데이터 관리">
+                <button class="button primary" type="button" id="exportButton">데이터 내보내기</button>
+                <label class="button ghost" for="importInput">데이터 가져오기</label>
+                <input id="importInput" type="file" accept="application/json" hidden>
+                <button class="button danger" type="button" id="resetButton">초기화</button>
+              </section>
+            </article>
           </div>
         </section>
       </main>
     </div>
+
+    <nav class="bottom-nav" id="bottomNav" aria-label="주요 메뉴">
+      <button class="bottom-nav-item" type="button" data-view="schedule" aria-current="page" aria-controls="schedulePanel">
+        <span class="nav-icon nav-icon-schedule" aria-hidden="true"></span>
+        <span>일정</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-view="journal" aria-controls="journalPanel">
+        <span class="nav-icon nav-icon-journal" aria-hidden="true"></span>
+        <span>기록</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-view="expense" aria-controls="expensePanel">
+        <span class="nav-icon nav-icon-expense" aria-hidden="true"></span>
+        <span>지출</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-view="prep" aria-controls="prepPanel">
+        <span class="nav-icon nav-icon-prep" aria-hidden="true"></span>
+        <span>준비</span>
+      </button>
+    </nav>
 
     <script src="app.js" defer></script>
   </body>
