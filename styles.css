@@ -18,9 +18,14 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   background:
     linear-gradient(180deg, rgba(40, 111, 158, 0.08), transparent 360px),
     var(--bg);
@@ -119,6 +124,8 @@ h2 {
 .route-visual {
   border-radius: var(--radius);
   padding: 12px;
+  min-width: 0;
+  max-width: 100%;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -126,6 +133,7 @@ h2 {
 
 #routeCanvas {
   width: 100%;
+  max-width: 100%;
   height: 100%;
   min-height: 156px;
   display: block;
@@ -316,6 +324,7 @@ h2 {
 .week-sidebar {
   position: sticky;
   top: 14px;
+  min-width: 0;
   padding: 16px;
 }
 
@@ -333,6 +342,8 @@ h2 {
 .week-rail {
   display: grid;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .week-rail-day {
@@ -378,6 +389,7 @@ h2 {
 
 .calendar-main {
   min-width: 0;
+  max-width: 100%;
   display: grid;
   gap: 12px;
 }
@@ -417,6 +429,7 @@ h2 {
 }
 
 .week-calendar {
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -1184,9 +1197,15 @@ h2 {
   }
 
   .week-rail {
-    grid-template-columns: repeat(5, minmax(164px, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(164px, 1fr);
+    grid-template-columns: none;
     overflow-x: auto;
     padding-bottom: 2px;
+  }
+
+  .week-rail-day {
+    min-width: 164px;
   }
 }
 
