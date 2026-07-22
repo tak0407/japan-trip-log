@@ -21,7 +21,40 @@
       </header>
 
       <main class="tab-content">
-        <section class="tab-panel is-active" id="schedulePanel" data-view-panel="schedule">
+        <section class="tab-panel is-active" id="nowPanel" data-view-panel="now">
+          <section class="calendar-shell">
+            <aside class="week-sidebar" aria-label="여행 날짜 타임라인">
+              <div class="week-sidebar-header">
+                <p class="panel-kicker">Trip week</p>
+                <h2>8월 11일 - 15일</h2>
+                <p id="nowClock">현재 시간 확인 중</p>
+              </div>
+              <div class="week-rail" id="weekRail"></div>
+            </aside>
+
+            <section class="calendar-main">
+              <article class="now-current-card" id="nowCurrentCard">
+                <div>
+                  <p class="panel-kicker" id="nowKicker">지금</p>
+                  <h2 id="nowTitle">현재 일정 확인</h2>
+                  <p id="nowMeta"></p>
+                </div>
+                <div class="now-card-side">
+                  <span class="status-pill" id="nowStatus">대기</span>
+                  <div class="now-actions" id="nowActions">
+                    <button class="button primary" type="button" data-now-action="map">지도</button>
+                    <button class="button ghost" type="button" data-now-action="log">기록</button>
+                    <button class="button ghost" type="button" data-now-action="schedule">일정</button>
+                  </div>
+                </div>
+              </article>
+
+              <section class="week-calendar" id="weekCalendar" aria-label="주간 캘린더뷰"></section>
+            </section>
+          </section>
+        </section>
+
+        <section class="tab-panel" id="schedulePanel" data-view-panel="schedule" hidden>
           <section class="overview-grid" aria-label="여행 요약">
             <article class="metric-card">
               <span class="metric-label">일정 진행</span>
@@ -211,7 +244,11 @@
     </div>
 
     <nav class="bottom-nav" id="bottomNav" aria-label="주요 메뉴">
-      <button class="bottom-nav-item" type="button" data-view="schedule" aria-current="page" aria-controls="schedulePanel">
+      <button class="bottom-nav-item" type="button" data-view="now" aria-current="page" aria-controls="nowPanel">
+        <span class="nav-icon nav-icon-now" aria-hidden="true"></span>
+        <span>지금</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-view="schedule" aria-controls="schedulePanel">
         <span class="nav-icon nav-icon-schedule" aria-hidden="true"></span>
         <span>일정</span>
       </button>

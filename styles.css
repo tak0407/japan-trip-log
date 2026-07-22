@@ -297,6 +297,260 @@ h2 {
   border-color: #bfdae7;
 }
 
+.calendar-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.week-sidebar,
+.now-current-card,
+.week-calendar {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.week-sidebar {
+  position: sticky;
+  top: 14px;
+  padding: 16px;
+}
+
+.week-sidebar-header {
+  margin-bottom: 14px;
+}
+
+.week-sidebar-header p:last-child {
+  margin: 8px 0 0;
+  color: #405057;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.week-rail {
+  display: grid;
+  gap: 8px;
+}
+
+.week-rail-day {
+  width: 100%;
+  min-height: 78px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.week-rail-day[aria-current="true"] {
+  border-color: rgba(40, 111, 158, 0.65);
+  background: #eaf4f8;
+}
+
+.week-rail-day span,
+.week-rail-day strong,
+.week-rail-day small {
+  display: block;
+}
+
+.week-rail-day span {
+  color: var(--blue);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.week-rail-day strong {
+  margin-top: 4px;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.week-rail-day small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.calendar-main {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.now-current-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(234, 244, 248, 0.98), rgba(255, 255, 255, 0.98));
+}
+
+.now-current-card h2 {
+  margin-top: 5px;
+  font-size: 1.55rem;
+}
+
+.now-current-card p {
+  margin: 8px 0 0;
+  color: #405057;
+  line-height: 1.45;
+}
+
+.now-card-side {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.now-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.week-calendar {
+  overflow-x: auto;
+}
+
+.week-calendar-header,
+.week-calendar-body {
+  display: grid;
+  grid-template-columns: 64px repeat(5, minmax(128px, 1fr));
+  min-width: 780px;
+}
+
+.week-calendar-header {
+  border-bottom: 1px solid var(--line);
+  background: #f6faf9;
+}
+
+.calendar-corner,
+.calendar-day-heading {
+  min-height: 58px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.calendar-corner {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.calendar-day-heading:last-child {
+  border-right: 0;
+}
+
+.calendar-day-heading[aria-selected="true"] {
+  background: #eaf4f8;
+}
+
+.calendar-day-heading span,
+.calendar-day-heading strong {
+  display: block;
+}
+
+.calendar-day-heading span {
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.calendar-day-heading strong {
+  margin-top: 3px;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.week-calendar-body {
+  min-height: 760px;
+}
+
+.time-axis {
+  position: relative;
+  border-right: 1px solid var(--line);
+  background: #f8fbfa;
+}
+
+.time-axis span {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.calendar-day-column {
+  position: relative;
+  min-height: 760px;
+  border-right: 1px solid var(--line);
+  background:
+    linear-gradient(to bottom, rgba(203, 215, 211, 0.42) 1px, transparent 1px) 0 0 / 100% 95px,
+    #ffffff;
+}
+
+.calendar-day-column:last-child {
+  border-right: 0;
+}
+
+.calendar-event {
+  position: absolute;
+  min-height: 44px;
+  border: 1px solid rgba(40, 111, 158, 0.28);
+  border-radius: 6px;
+  padding: 7px 8px;
+  overflow: hidden;
+  background: #f0f8fb;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(29, 36, 40, 0.08);
+}
+
+.calendar-event.is-current {
+  border-color: rgba(45, 122, 88, 0.75);
+  background: #e8f3ed;
+}
+
+.calendar-event.is-selected {
+  outline: 2px solid rgba(40, 111, 158, 0.26);
+}
+
+.calendar-event.is-done {
+  opacity: 0.58;
+}
+
+.calendar-event span,
+.calendar-event strong {
+  display: block;
+}
+
+.calendar-event span {
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.calendar-event strong {
+  margin-top: 3px;
+  font-size: 0.83rem;
+  line-height: 1.25;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
@@ -761,8 +1015,8 @@ h2 {
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(5, minmax(54px, 1fr));
-  width: min(600px, calc(100% - 24px));
+  grid-template-columns: repeat(6, minmax(48px, 1fr));
+  width: min(680px, calc(100% - 24px));
   min-height: 68px;
   padding: 8px;
   border: 1px solid rgba(203, 215, 211, 0.9);
@@ -804,6 +1058,21 @@ h2 {
   position: absolute;
   content: "";
   display: block;
+}
+
+.nav-icon-now::before {
+  inset: 3px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.nav-icon-now::after {
+  left: 10px;
+  top: 6px;
+  width: 5px;
+  height: 8px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
 }
 
 .nav-icon-schedule::before {
@@ -893,6 +1162,7 @@ h2 {
 
 @media (max-width: 980px) {
   .topbar,
+  .calendar-shell,
   .content-grid,
   .journal-layout,
   .prep-grid,
@@ -907,6 +1177,16 @@ h2 {
 
   .expense-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .week-sidebar {
+    position: static;
+  }
+
+  .week-rail {
+    grid-template-columns: repeat(5, minmax(164px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 2px;
   }
 }
 
@@ -960,6 +1240,18 @@ h2 {
 
   .expense-form {
     grid-template-columns: 1fr;
+  }
+
+  .now-current-card {
+    grid-template-columns: 1fr;
+  }
+
+  .now-card-side {
+    justify-items: stretch;
+  }
+
+  .now-actions {
+    justify-content: stretch;
   }
 
   .map-frame {

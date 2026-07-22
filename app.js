@@ -344,12 +344,21 @@ const DEFAULT_PACKING = [
 ];
 
 const STORAGE_KEY = "japan-trip-log:v1";
-const VIEWS = ["schedule", "map", "journal", "expense", "prep"];
+const APP_VERSION = 3;
+const VIEWS = ["now", "schedule", "map", "journal", "expense", "prep"];
+const CALENDAR_START_MINUTES = 7 * 60;
+const CALENDAR_END_MINUTES = 23 * 60;
 
 const state = loadState();
+if (state.appVersion !== APP_VERSION) {
+  state.activeView = "now";
+  state.appVersion = APP_VERSION;
+}
+
 let selectedDayId = state.selectedDayId || TRIP_DAYS[0].id;
-let activeView = VIEWS.includes(state.activeView) ? state.activeView : "schedule";
+let activeView = VIEWS.includes(state.activeView) ? state.activeView : "now";
 let selectedMapStopId = state.selectedMapStopId || "";
+let selectedNowStopId = "";
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -358,6 +367,14 @@ const nodes = {
   journalMetric: document.querySelector("#journalMetric"),
   expenseMetric: document.querySelector("#expenseMetric"),
   dayTabs: document.querySelector("#dayTabs"),
+  nowClock: document.querySelector("#nowClock"),
+  nowKicker: document.querySelector("#nowKicker"),
+  nowTitle: document.querySelector("#nowTitle"),
+  nowMeta: document.querySelector("#nowMeta"),
+  nowStatus: document.querySelector("#nowStatus"),
+  nowActions: document.querySelector("#nowActions"),
+  weekRail: document.querySelector("#weekRail"),
+  weekCalendar: document.querySelector("#weekCalendar"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   selectedDayTitle: document.querySelector("#selectedDayTitle"),
   selectedDayStatus: document.querySelector("#selectedDayStatus"),
@@ -398,8 +415,9 @@ function loadState() {
     journal: [],
     expenses: [],
     selectedDayId: TRIP_DAYS[0].id,
-    activeView: "schedule",
-    selectedMapStopId: ""
+    activeView: "now",
+    selectedMapStopId: "",
+    appVersion: APP_VERSION
   };
 
   try {
@@ -416,6 +434,7 @@ function persist() {
   state.selectedDayId = selectedDayId;
   state.activeView = activeView;
   state.selectedMapStopId = selectedMapStopId;
+  state.appVersion = APP_VERSION;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -438,6 +457,10 @@ function escapeHTML(value) {
 
 function getAllStops() {
   return TRIP_DAYS.flatMap((day) => day.stops);
+}
+
+function getStopById(stopId) {
+  return getCalendarItems().find((item) => item.id === stopId);
 }
 
 function getMappableStops() {
@@ -474,8 +497,70 @@ function getDayProgress(day) {
   return { done, total };
 }
 
+function parseStopStartMinutes(time, index) {
+  const value = String(time || "");
+  const match = value.match(/(\d{1,2}):(\d{2})/);
+  if (match) return Number(match[1]) * 60 + Number(match[2]);
+  if (value.includes("종일")) return 8 * 60;
+  if (value.includes("오전")) return 9 * 60;
+  if (value.includes("체크아웃")) return 10 * 60;
+  if (value.includes("공항")) return 11 * 60;
+  return 8 * 60 + index * 60;
+}
+
+function parseStopEndMinutes(time, startMinutes) {
+  const value = String(time || "");
+  const range = value.match(/\d{1,2}:\d{2}\s*[-~]\s*(\d{1,2}):(\d{2})/);
+  if (range) return Number(range[1]) * 60 + Number(range[2]);
+  if (value.includes("종일")) return 18 * 60 + 50;
+  if (value.includes("이후")) return Math.min(startMinutes + 90, CALENDAR_END_MINUTES);
+  if (value.includes("전후")) return startMinutes + 60;
+  if (value.includes("오전")) return 11 * 60;
+  if (value.includes("체크아웃")) return 11 * 60;
+  return Math.min(startMinutes + 60, CALENDAR_END_MINUTES);
+}
+
+function createTripDate(dayId, minutes) {
+  const hours = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const mins = String(minutes % 60).padStart(2, "0");
+  return new Date(`${dayId}T${hours}:${mins}:00+09:00`);
+}
+
+function getCalendarItems() {
+  return TRIP_DAYS.flatMap((day) => day.stops.map((stop, index) => {
+    const startMinutes = parseStopStartMinutes(stop.time, index);
+    const endMinutes = Math.max(startMinutes + 30, parseStopEndMinutes(stop.time, startMinutes));
+    return {
+      ...stop,
+      dayId: day.id,
+      dayLabel: day.label,
+      dayTitle: day.title,
+      startMinutes,
+      endMinutes,
+      startDate: createTripDate(day.id, startMinutes),
+      endDate: createTripDate(day.id, endMinutes)
+    };
+  })).sort((a, b) => a.startDate - b.startDate);
+}
+
+function getNowContext() {
+  const now = new Date();
+  const items = getCalendarItems();
+  const selected = selectedNowStopId ? items.find((item) => item.id === selectedNowStopId) : null;
+  if (selected) return { mode: "selected", item: selected, now };
+
+  const current = items.find((item) => now >= item.startDate && now < item.endDate);
+  if (current) return { mode: "current", item: current, now };
+
+  const next = items.find((item) => now < item.startDate);
+  if (next) return { mode: "next", item: next, now };
+
+  return { mode: "complete", item: items[items.length - 1], now };
+}
+
 function render() {
   renderActiveView();
+  renderNow();
   renderMetrics();
   renderDayTabs();
   renderNextStop();
@@ -516,6 +601,139 @@ function renderMetrics() {
   nodes.checkedMetric.textContent = `${checked} / ${allStops.length}`;
   nodes.journalMetric.textContent = `${state.journal.length}개`;
   nodes.expenseMetric.textContent = formatYen(expenseTotal);
+}
+
+function renderNow() {
+  const context = getNowContext();
+  const item = context.item;
+  const formatter = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Tokyo",
+    month: "numeric",
+    day: "numeric",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  nodes.nowClock.textContent = `일본 기준 ${formatter.format(context.now)}`;
+
+  if (!item) {
+    nodes.nowKicker.textContent = "지금";
+    nodes.nowTitle.textContent = "일정이 없습니다";
+    nodes.nowMeta.textContent = "";
+    nodes.nowStatus.textContent = "대기";
+    nodes.weekRail.innerHTML = "";
+    nodes.weekCalendar.innerHTML = '<p class="empty-state">표시할 일정이 없습니다.</p>';
+    return;
+  }
+
+  const statusText = {
+    current: "진행 중",
+    next: "다음 일정",
+    selected: "선택 일정",
+    complete: "여행 완료"
+  }[context.mode];
+
+  nodes.nowKicker.textContent = `${item.dayLabel} · ${item.dayTitle}`;
+  nodes.nowTitle.textContent = item.title;
+  nodes.nowMeta.textContent = `${item.time} · ${item.area} · ${item.type}`;
+  nodes.nowStatus.textContent = statusText;
+
+  renderWeekRail(item);
+  renderWeekCalendar(item, context);
+}
+
+function renderWeekRail(activeItem) {
+  nodes.weekRail.innerHTML = TRIP_DAYS.map((day) => {
+    const progress = getDayProgress(day);
+    const dayItems = getCalendarItems().filter((item) => item.dayId === day.id);
+    const first = dayItems[0];
+    const last = dayItems[dayItems.length - 1];
+    const isActive = activeItem && activeItem.dayId === day.id;
+    const timeRange = first && last ? `${first.time} - ${last.time}` : "일정 없음";
+
+    return `
+      <button class="week-rail-day" type="button" data-now-day-id="${day.id}" aria-current="${isActive ? "true" : "false"}">
+        <span>${escapeHTML(day.label)}</span>
+        <strong>${escapeHTML(day.title)}</strong>
+        <small>${escapeHTML(timeRange)} · ${progress.done}/${progress.total}</small>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderWeekCalendar(activeItem, context) {
+  const items = getCalendarItems();
+  const duration = CALENDAR_END_MINUTES - CALENDAR_START_MINUTES;
+  const labels = [];
+
+  for (let minutes = CALENDAR_START_MINUTES; minutes <= CALENDAR_END_MINUTES; minutes += 120) {
+    labels.push(`
+      <span style="top: ${((minutes - CALENDAR_START_MINUTES) / duration) * 100}%">
+        ${String(Math.floor(minutes / 60)).padStart(2, "0")}:00
+      </span>
+    `);
+  }
+
+  const dayColumns = TRIP_DAYS.map((day) => {
+    const dayItems = items.filter((item) => item.dayId === day.id);
+    const grouped = dayItems.reduce((acc, item) => {
+      const key = `${item.startMinutes}-${item.endMinutes}`;
+      acc[key] = acc[key] || [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    return `
+      <section class="calendar-day-column" data-calendar-day="${day.id}">
+        ${dayItems.map((item) => {
+          const top = Math.max(0, ((item.startMinutes - CALENDAR_START_MINUTES) / duration) * 100);
+          const height = Math.max(6.5, ((item.endMinutes - item.startMinutes) / duration) * 100);
+          const group = grouped[`${item.startMinutes}-${item.endMinutes}`] || [item];
+          const laneIndex = group.findIndex((entry) => entry.id === item.id);
+          const laneWidth = 100 / group.length;
+          const left = laneIndex * laneWidth;
+          const isCurrent = context.mode === "current" && activeItem && item.id === activeItem.id;
+          const isSelected = activeItem && item.id === activeItem.id;
+          const isDone = Boolean(state.checkedStops[item.id]);
+          const classes = [
+            "calendar-event",
+            isCurrent ? "is-current" : "",
+            isSelected ? "is-selected" : "",
+            isDone ? "is-done" : ""
+          ].filter(Boolean).join(" ");
+
+          return `
+            <button
+              class="${classes}"
+              type="button"
+              data-calendar-stop-id="${item.id}"
+              style="top: ${top}%; height: ${height}%; left: calc(${left}% + 3px); width: calc(${laneWidth}% - 6px);"
+              aria-label="${escapeHTML(item.time)} ${escapeHTML(item.title)}">
+              <span>${escapeHTML(item.time)}</span>
+              <strong>${escapeHTML(item.title)}</strong>
+            </button>
+          `;
+        }).join("")}
+      </section>
+    `;
+  }).join("");
+
+  nodes.weekCalendar.innerHTML = `
+    <div class="week-calendar-header">
+      <div class="calendar-corner">시간</div>
+      ${TRIP_DAYS.map((day) => `
+        <button class="calendar-day-heading" type="button" data-now-day-id="${day.id}" aria-selected="${activeItem && activeItem.dayId === day.id ? "true" : "false"}">
+          <span>${escapeHTML(day.label)}</span>
+          <strong>${escapeHTML(day.title)}</strong>
+        </button>
+      `).join("")}
+    </div>
+    <div class="week-calendar-body">
+      <div class="time-axis">${labels.join("")}</div>
+      ${dayColumns}
+    </div>
+  `;
 }
 
 function renderNextStop() {
@@ -856,9 +1074,77 @@ nodes.bottomNav.addEventListener("click", (event) => {
   const button = event.target.closest("[data-view]");
   if (!button) return;
   activeView = button.dataset.view;
+  if (activeView === "now") {
+    selectedNowStopId = "";
+  }
   persist();
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+nodes.nowActions.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-now-action]");
+  if (!button) return;
+  const item = getNowContext().item;
+  if (!item) return;
+
+  selectedDayId = item.dayId;
+
+  if (button.dataset.nowAction === "map" && item.map) {
+    selectedMapStopId = item.id;
+    activeView = "map";
+  }
+
+  if (button.dataset.nowAction === "log") {
+    activeView = "journal";
+    render();
+    nodes.journalDay.value = item.dayId;
+    nodes.journalForm.elements.title.value = item.title;
+    nodes.journalForm.elements.note.focus();
+    persist();
+    return;
+  }
+
+  if (button.dataset.nowAction === "schedule") {
+    activeView = "schedule";
+  }
+
+  persist();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+function selectNowDay(dayId) {
+  const item = getCalendarItems().find((entry) => entry.dayId === dayId);
+  if (!item) return;
+  selectedDayId = dayId;
+  selectedNowStopId = item.id;
+  persist();
+  render();
+}
+
+nodes.weekRail.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-now-day-id]");
+  if (!button) return;
+  selectNowDay(button.dataset.nowDayId);
+});
+
+nodes.weekCalendar.addEventListener("click", (event) => {
+  const stopButton = event.target.closest("[data-calendar-stop-id]");
+  if (stopButton) {
+    const item = getStopById(stopButton.dataset.calendarStopId);
+    if (!item) return;
+    selectedDayId = item.dayId;
+    selectedNowStopId = item.id;
+    selectedMapStopId = item.map ? item.id : selectedMapStopId;
+    persist();
+    render();
+    return;
+  }
+
+  const dayButton = event.target.closest("[data-now-day-id]");
+  if (!dayButton) return;
+  selectNowDay(dayButton.dataset.nowDayId);
 });
 
 nodes.stopList.addEventListener("change", (event) => {
@@ -1027,7 +1313,8 @@ nodes.resetButton.addEventListener("click", () => {
   Object.assign(state, loadState());
   selectedDayId = TRIP_DAYS[0].id;
   selectedMapStopId = "";
-  activeView = "schedule";
+  selectedNowStopId = "";
+  activeView = "now";
   render();
 });
 
