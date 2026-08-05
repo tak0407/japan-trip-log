@@ -358,6 +358,7 @@ if (state.appVersion !== APP_VERSION) {
 let selectedDayId = state.selectedDayId || TRIP_DAYS[0].id;
 let activeView = VIEWS.includes(state.activeView) ? state.activeView : "now";
 let selectedMapStopId = state.selectedMapStopId || "";
+let mapDayFilter = state.mapDayFilter || "all";
 let selectedNowStopId = "";
 
 const nodes = {
@@ -391,6 +392,9 @@ const nodes = {
   mapOpenLink: document.querySelector("#mapOpenLink"),
   mapPlaceList: document.querySelector("#mapPlaceList"),
   mapCount: document.querySelector("#mapCount"),
+  mapPanel: document.querySelector("#mapPanel"),
+  mapDayFilters: document.querySelector("#mapDayFilters"),
+  mapFullscreenButton: document.querySelector("#mapFullscreenButton"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -417,6 +421,7 @@ function loadState() {
     selectedDayId: TRIP_DAYS[0].id,
     activeView: "now",
     selectedMapStopId: "",
+    mapDayFilter: "all",
     appVersion: APP_VERSION
   };
 
@@ -434,6 +439,7 @@ function persist() {
   state.selectedDayId = selectedDayId;
   state.activeView = activeView;
   state.selectedMapStopId = selectedMapStopId;
+  state.mapDayFilter = mapDayFilter;
   state.appVersion = APP_VERSION;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -485,10 +491,13 @@ function getStopMapQuery(stop) {
 
 function getSelectedMapStop() {
   const mappableStops = getMappableStops();
-  const selected = mappableStops.find((stop) => stop.id === selectedMapStopId);
+  const filteredStops = mapDayFilter === "all"
+    ? mappableStops
+    : mappableStops.filter((stop) => stop.dayId === mapDayFilter);
+  const selected = filteredStops.find((stop) => stop.id === selectedMapStopId);
   if (selected) return selected;
-  const sameDay = mappableStops.find((stop) => stop.dayId === selectedDayId);
-  return sameDay || mappableStops[0];
+  const sameDay = filteredStops.find((stop) => stop.dayId === selectedDayId);
+  return sameDay || filteredStops[0] || mappableStops[0];
 }
 
 function getDayProgress(day) {
@@ -825,8 +834,15 @@ function renderStops() {
 function renderMap() {
   const mappableStops = getMappableStops();
   const selected = getSelectedMapStop();
+  const visibleStops = mapDayFilter === "all"
+    ? mappableStops
+    : mappableStops.filter((stop) => stop.dayId === mapDayFilter);
 
-  nodes.mapCount.textContent = `${mappableStops.length}곳`;
+  nodes.mapCount.textContent = `${visibleStops.length}곳`;
+  nodes.mapDayFilters.innerHTML = [
+    `<button class="map-day-filter" type="button" data-map-day-filter="all" aria-pressed="${mapDayFilter === "all" ? "true" : "false"}">전체</button>`,
+    ...TRIP_DAYS.map((day) => `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label)}</button>`)
+  ].join("");
 
   if (!selected) {
     nodes.mapFrame.removeAttribute("src");
@@ -847,7 +863,7 @@ function renderMap() {
   nodes.mapOpenLink.href = selected.map;
 
   nodes.mapPlaceList.innerHTML = TRIP_DAYS.map((day) => {
-    const stops = mappableStops.filter((stop) => stop.dayId === day.id);
+    const stops = visibleStops.filter((stop) => stop.dayId === day.id);
     if (!stops.length) return "";
     return `
       <section class="map-day-group">
@@ -1187,8 +1203,33 @@ nodes.mapPlaceList.addEventListener("click", (event) => {
   if (!stop) return;
   selectedMapStopId = stop.id;
   selectedDayId = stop.dayId;
+  mapDayFilter = stop.dayId;
   persist();
   render();
+});
+
+nodes.mapDayFilters.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-map-day-filter]");
+  if (!button) return;
+  mapDayFilter = button.dataset.mapDayFilter;
+  persist();
+  render();
+});
+
+nodes.mapFullscreenButton.addEventListener("click", async () => {
+  const isFullscreen = nodes.mapPanel.classList.toggle("is-map-fullscreen");
+  nodes.mapFullscreenButton.textContent = isFullscreen ? "전체 화면 닫기" : "전체 화면";
+  nodes.mapFullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
+  document.body.classList.toggle("map-is-fullscreen", isFullscreen);
+  if (isFullscreen) window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || !nodes.mapPanel.classList.contains("is-map-fullscreen")) return;
+  nodes.mapPanel.classList.remove("is-map-fullscreen");
+  document.body.classList.remove("map-is-fullscreen");
+  nodes.mapFullscreenButton.textContent = "전체 화면";
+  nodes.mapFullscreenButton.setAttribute("aria-pressed", "false");
 });
 
 nodes.packingList.addEventListener("change", (event) => {
@@ -1297,6 +1338,7 @@ nodes.importInput.addEventListener("change", async (event) => {
     selectedDayId = imported.selectedDayId || selectedDayId;
     activeView = VIEWS.includes(imported.activeView) ? imported.activeView : activeView;
     selectedMapStopId = imported.selectedMapStopId || selectedMapStopId;
+    mapDayFilter = imported.mapDayFilter || mapDayFilter;
     persist();
     render();
   } catch (error) {
@@ -1313,6 +1355,7 @@ nodes.resetButton.addEventListener("click", () => {
   Object.assign(state, loadState());
   selectedDayId = TRIP_DAYS[0].id;
   selectedMapStopId = "";
+  mapDayFilter = "all";
   selectedNowStopId = "";
   activeView = "now";
   render();

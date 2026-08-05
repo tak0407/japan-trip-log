@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="2026 일본 여행 일정 체크와 여행 기록을 관리하는 공유 웹앱">
+    <meta name="theme-color" content="#286f9e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Japan Trip Log">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <title>Japan Trip Log</title>
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -136,9 +142,16 @@
             <div class="panel-heading">
               <div>
                 <p class="panel-kicker">지도</p>
-                <h2>장소 지도</h2>
+                <h2>여행 동선 지도</h2>
               </div>
-              <span class="status-pill" id="mapCount">0곳</span>
+              <div class="map-heading-actions">
+                <span class="status-pill" id="mapCount">0곳</span>
+                <button class="button ghost compact" id="mapFullscreenButton" type="button" aria-pressed="false">전체 화면</button>
+              </div>
+            </div>
+            <div class="map-toolbar" aria-label="지도 필터">
+              <span class="map-toolbar-label">일정 범위</span>
+              <div class="map-day-filters" id="mapDayFilters"></div>
             </div>
             <div class="map-layout">
               <section class="map-stage" aria-label="선택한 장소 지도">
@@ -156,7 +169,7 @@
                     <h2 id="mapPlaceTitle">지도</h2>
                     <p id="mapPlaceMeta"></p>
                   </div>
-                  <a class="button ghost" id="mapOpenLink" href="#" target="_blank" rel="noreferrer">크게 보기</a>
+                  <a class="button ghost" id="mapOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
                 </div>
               </section>
               <section class="map-place-list" id="mapPlaceList" aria-label="장소 목록"></section>
@@ -271,5 +284,10 @@
     </nav>
 
     <script src="app.js" defer></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
+      }
+    </script>
   </body>
 </html>

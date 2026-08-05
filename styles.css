@@ -941,6 +941,58 @@ h2 {
   align-items: start;
 }
 
+.map-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button.compact {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.map-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: -2px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #f7faf9;
+}
+
+.map-toolbar-label {
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.map-day-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.map-day-filter {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.map-day-filter[aria-pressed="true"] {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
 .map-stage {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -978,6 +1030,46 @@ h2 {
   max-height: 640px;
   overflow: auto;
   padding-right: 2px;
+}
+
+.map-panel.is-map-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  border: 0;
+  border-radius: 0;
+  background: var(--bg);
+}
+
+.map-panel.is-map-fullscreen .map-layout {
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+}
+
+.map-panel.is-map-fullscreen .map-stage {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-panel.is-map-fullscreen .map-frame {
+  min-height: 0;
+  flex: 1;
+  aspect-ratio: auto;
+}
+
+.map-panel.is-map-fullscreen .map-place-list {
+  max-height: none;
+  min-height: 0;
+}
+
+body.map-is-fullscreen {
+  overflow: hidden;
 }
 
 .map-day-group {
@@ -1275,6 +1367,20 @@ h2 {
 
   .map-frame {
     min-height: 320px;
+  }
+
+  .map-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .map-panel.is-map-fullscreen .map-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .map-panel.is-map-fullscreen .map-place-list {
+    max-height: 32vh;
   }
 
   .map-detail {
