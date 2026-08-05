@@ -348,6 +348,18 @@ const APP_VERSION = 3;
 const VIEWS = ["now", "schedule", "map", "journal", "expense", "prep"];
 const CALENDAR_START_MINUTES = 7 * 60;
 const CALENDAR_END_MINUTES = 23 * 60;
+const MAP_CENTER = [35.6814, 139.7658];
+const MAP_ZOOM = 10;
+const MAP_COORDINATES = {
+  "d1-move-asakusa": [35.7118, 139.7967], "d1-asakusa": [35.7148, 139.7967],
+  "d1-move-shibuya": [35.6595, 139.7005], "d1-shibuya": [35.6595, 139.7005], "d1-return": [35.7074, 139.7747],
+  "d2-yokosuka-arrive": [35.2920, 139.6670], "d2-cruise": [35.2920, 139.6670], "d2-yokohama-move": [35.4657, 139.6220],
+  "d2-nissan": [35.4662, 139.6244], "d2-cupnoodles": [35.4560, 139.6630], "d2-minatomirai": [35.4575, 139.6350], "d2-night": [35.4548, 139.6500],
+  "d3-gcans-arrive": [35.8830, 139.8260], "d3-gcans-tour": [35.8830, 139.8260], "d3-omiya-lunch": [35.9060, 139.6230],
+  "d3-railway": [35.9220, 139.6020], "d3-tsukishima": [35.6640, 139.7820], "d3-monja": [35.6640, 139.7820],
+  "d3-teamlab": [35.6456, 139.7897], "d3-night": [35.6260, 139.7740], "d4-tokyo-station": [35.6814, 139.7658],
+  "d4-fuji-tour": [35.3606, 138.7274], "d4-ameyoko": [35.7077, 139.7745]
+};
 
 const state = loadState();
 if (state.appVersion !== APP_VERSION) {
@@ -360,6 +372,8 @@ let activeView = VIEWS.includes(state.activeView) ? state.activeView : "now";
 let selectedMapStopId = state.selectedMapStopId || "";
 let mapDayFilter = state.mapDayFilter || "all";
 let selectedNowStopId = "";
+let tripMap = null;
+let mapMarkers = [];
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -385,15 +399,15 @@ const nodes = {
   journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
-  mapFrame: document.querySelector("#mapFrame"),
-  mapPlaceDay: document.querySelector("#mapPlaceDay"),
-  mapPlaceTitle: document.querySelector("#mapPlaceTitle"),
-  mapPlaceMeta: document.querySelector("#mapPlaceMeta"),
-  mapOpenLink: document.querySelector("#mapOpenLink"),
-  mapPlaceList: document.querySelector("#mapPlaceList"),
-  mapCount: document.querySelector("#mapCount"),
-  mapPanel: document.querySelector("#mapPanel"),
   mapDayFilters: document.querySelector("#mapDayFilters"),
+  mapCanvas: document.querySelector("#mapCanvas"),
+  mapBottomSheet: document.querySelector("#mapBottomSheet"),
+  mapSheetClose: document.querySelector("#mapSheetClose"),
+  mapSheetDay: document.querySelector("#mapSheetDay"),
+  mapSheetTitle: document.querySelector("#mapSheetTitle"),
+  mapSheetMeta: document.querySelector("#mapSheetMeta"),
+  mapSheetItems: document.querySelector("#mapSheetItems"),
+  mapSheetOpenLink: document.querySelector("#mapSheetOpenLink"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -470,7 +484,7 @@ function getStopById(stopId) {
 
 function getMappableStops() {
   return TRIP_DAYS.flatMap((day) => day.stops
-    .filter((stop) => stop.map)
+    .filter((stop) => stop.map && MAP_COORDINATES[stop.id])
     .map((stop) => ({ ...stop, dayId: day.id, dayLabel: day.label, dayTitle: day.title })));
 }
 
@@ -832,50 +846,52 @@ function renderStops() {
 
 function renderMap() {
   const mappableStops = getMappableStops();
-  const selected = getSelectedMapStop();
   const visibleStops = mapDayFilter === "all"
     ? mappableStops
     : mappableStops.filter((stop) => stop.dayId === mapDayFilter);
 
-  nodes.mapCount.textContent = `${visibleStops.length}곳`;
   nodes.mapDayFilters.innerHTML = [
     `<button class="map-day-filter" type="button" data-map-day-filter="all" aria-pressed="${mapDayFilter === "all" ? "true" : "false"}">전체</button>`,
     ...TRIP_DAYS.map((day) => `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label)}</button>`)
   ].join("");
+  nodes.mapBottomSheet.hidden = true;
 
-  if (!selected) {
-    nodes.mapFrame.removeAttribute("src");
-    nodes.mapPlaceTitle.textContent = "지도";
-    nodes.mapPlaceDay.textContent = "장소";
-    nodes.mapPlaceMeta.textContent = "";
-    nodes.mapOpenLink.href = "#";
-    nodes.mapPlaceList.innerHTML = '<p class="empty-state">표시할 장소가 없습니다.</p>';
-    return;
+  if (!tripMap && window.L) {
+    tripMap = L.map(nodes.mapCanvas, { zoomControl: false }).setView(MAP_CENTER, MAP_ZOOM);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(tripMap);
   }
+  if (!tripMap) return;
 
-  selectedMapStopId = selected.id;
-  const query = getStopMapQuery(selected);
-  nodes.mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
-  nodes.mapPlaceDay.textContent = `${selected.dayLabel} · ${selected.dayTitle}`;
-  nodes.mapPlaceTitle.textContent = selected.title;
-  nodes.mapPlaceMeta.textContent = `${selected.time} · ${selected.area} · ${selected.type}`;
-  nodes.mapOpenLink.href = selected.map;
+  mapMarkers.forEach((marker) => marker.remove());
+  mapMarkers = visibleStops.map((stop, index) => {
+    const marker = L.marker(MAP_COORDINATES[stop.id], { title: stop.title }).addTo(tripMap);
+    marker.bindTooltip(`${index + 1}. ${stop.title}`, { direction: "top", offset: [0, -16] });
+    marker.on("click", () => openMapSheet(stop));
+    return marker;
+  });
 
-  nodes.mapPlaceList.innerHTML = TRIP_DAYS.map((day) => {
-    const stops = visibleStops.filter((stop) => stop.dayId === day.id);
-    if (!stops.length) return "";
-    return `
-      <section class="map-day-group">
-        <p class="packing-title">${escapeHTML(day.label)} · ${escapeHTML(day.title)}</p>
-        ${stops.map((stop) => `
-          <button class="map-place-card" type="button" data-map-list-stop-id="${stop.id}" aria-selected="${stop.id === selectedMapStopId ? "true" : "false"}">
-            <strong>${escapeHTML(stop.title)}</strong>
-            <span>${escapeHTML(stop.time)} · ${escapeHTML(stop.area)}</span>
-          </button>
-        `).join("")}
-      </section>
-    `;
-  }).join("");
+  if (visibleStops.length > 1) {
+    tripMap.fitBounds(L.latLngBounds(visibleStops.map((stop) => MAP_COORDINATES[stop.id])), { padding: [36, 36], maxZoom: 14 });
+  } else if (visibleStops.length === 1) {
+    tripMap.setView(MAP_COORDINATES[visibleStops[0].id], 15);
+  } else {
+    tripMap.setView(MAP_CENTER, MAP_ZOOM);
+  }
+  window.setTimeout(() => tripMap.invalidateSize(), 0);
+}
+
+function openMapSheet(stop) {
+  selectedMapStopId = stop.id;
+  nodes.mapSheetDay.textContent = `${stop.dayLabel} · ${stop.dayTitle}`;
+  nodes.mapSheetTitle.textContent = stop.title;
+  nodes.mapSheetMeta.textContent = `${stop.time} · ${stop.area} · ${stop.type}`;
+  nodes.mapSheetItems.innerHTML = (stop.items || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("");
+  nodes.mapSheetOpenLink.href = stop.map;
+  nodes.mapBottomSheet.hidden = false;
+  persist();
 }
 
 function renderJournalFormDays() {
@@ -1107,6 +1123,7 @@ nodes.nowActions.addEventListener("click", (event) => {
 
   if (button.dataset.nowAction === "map" && item.map) {
     selectedMapStopId = item.id;
+    mapDayFilter = item.dayId;
     activeView = "map";
   }
 
@@ -1195,22 +1212,15 @@ nodes.stopList.addEventListener("click", (event) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-nodes.mapPlaceList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-map-list-stop-id]");
-  if (!button) return;
-  const stop = getMappableStops().find((item) => item.id === button.dataset.mapListStopId);
-  if (!stop) return;
-  selectedMapStopId = stop.id;
-  selectedDayId = stop.dayId;
-  mapDayFilter = stop.dayId;
-  persist();
-  render();
+nodes.mapSheetClose.addEventListener("click", () => {
+  nodes.mapBottomSheet.hidden = true;
 });
 
 nodes.mapDayFilters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-map-day-filter]");
   if (!button) return;
   mapDayFilter = button.dataset.mapDayFilter;
+  nodes.mapBottomSheet.hidden = true;
   persist();
   render();
 });

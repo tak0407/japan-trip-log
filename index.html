@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Japan Trip Log">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <title>Japan Trip Log</title>
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -139,40 +140,8 @@
 
         <section class="tab-panel" id="mapPanel" data-view-panel="map" hidden>
           <article class="panel map-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="panel-kicker">지도</p>
-                <h2>여행 동선 지도</h2>
-              </div>
-              <div class="map-heading-actions">
-                <span class="status-pill" id="mapCount">0곳</span>
-              </div>
-            </div>
-            <div class="map-toolbar" aria-label="지도 필터">
-              <span class="map-toolbar-label">일정 범위</span>
-              <div class="map-day-filters" id="mapDayFilters"></div>
-            </div>
-            <div class="map-layout">
-              <section class="map-stage" aria-label="선택한 장소 지도">
-                <iframe
-                  class="map-frame"
-                  id="mapFrame"
-                  title="선택한 장소 지도"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                  allowfullscreen>
-                </iframe>
-                <div class="map-detail">
-                  <div>
-                    <p class="panel-kicker" id="mapPlaceDay">장소</p>
-                    <h2 id="mapPlaceTitle">지도</h2>
-                    <p id="mapPlaceMeta"></p>
-                  </div>
-                  <a class="button ghost" id="mapOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
-                </div>
-              </section>
-              <section class="map-place-list" id="mapPlaceList" aria-label="장소 목록"></section>
-            </div>
+            <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
+            <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
           </article>
         </section>
 
@@ -282,6 +251,7 @@
       </button>
     </nav>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
     <script src="app.js" defer></script>
     <script>
       if ("serviceWorker" in navigator) {
