@@ -453,8 +453,6 @@ const nodes = {
   mapSheetAddress: document.querySelector("#mapSheetAddress"),
   mapSheetItems: document.querySelector("#mapSheetItems"),
   mapSheetOpenLink: document.querySelector("#mapSheetOpenLink"),
-  mapWalkLink: document.querySelector("#mapWalkLink"),
-  mapTransitLink: document.querySelector("#mapTransitLink"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -962,17 +960,6 @@ function showSearchPlace(place) {
   openSearchPlaceSheet(place);
 }
 
-function buildDirectionsUrl(position, travelMode) {
-  const destination = `${position.lat},${position.lng}`;
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=${travelMode}`;
-}
-
-function setMapSheetLinks(position, googleMapsUrl) {
-  nodes.mapSheetOpenLink.href = googleMapsUrl;
-  nodes.mapWalkLink.href = buildDirectionsUrl(position, "walking");
-  nodes.mapTransitLink.href = buildDirectionsUrl(position, "transit");
-}
-
 function openSearchPlaceSheet(place) {
   const position = { lat: place.location.lat(), lng: place.location.lng() };
   const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${position.lat},${position.lng}`)}`;
@@ -981,7 +968,7 @@ function openSearchPlaceSheet(place) {
   nodes.mapSheetMeta.textContent = place.formattedAddress || "주소 정보 없음";
   nodes.mapSheetAddress.textContent = "";
   nodes.mapSheetItems.innerHTML = "";
-  setMapSheetLinks(position, place.googleMapsURI || fallbackUrl);
+  nodes.mapSheetOpenLink.href = place.googleMapsURI || fallbackUrl;
   nodes.mapBottomSheet.hidden = false;
 }
 
@@ -1083,8 +1070,7 @@ function openMapSheet(stop) {
   nodes.mapSheetMeta.textContent = `${stop.time} · ${stop.area} · ${stop.type}`;
   nodes.mapSheetAddress.textContent = `${stop.mapPlace || stop.title} · ${stop.address}`;
   nodes.mapSheetItems.innerHTML = (stop.items || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("");
-  const [lat, lng] = MAP_COORDINATES[stop.id];
-  setMapSheetLinks({ lat, lng }, stop.map);
+  nodes.mapSheetOpenLink.href = stop.map;
   nodes.mapBottomSheet.hidden = false;
   persist();
 }
