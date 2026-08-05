@@ -252,7 +252,9 @@ const TRIP_DAYS = [
         title: "도요스, 오다이바 야경",
         area: "도요스 / 오다이바",
         type: "선택",
-        map: "https://www.google.com/maps/search/?api=1&query=Toyosu%20Odaiba%20night%20view"
+        mapPlace: "오다이바 해변공원",
+        address: "〒135-0091 도쿄도 미나토구 다이바 1-4",
+        map: "https://www.google.com/maps/search/?api=1&query=Odaiba%20Marine%20Park%201-4%20Daiba%20Minato%20Tokyo"
       },
       {
         id: "d3-return",
@@ -375,7 +377,7 @@ const MAP_ZOOM = 10;
 const PINNED_STOP_IDS = new Set([
   "d1-asakusa", "d1-shibuya",
   "d2-cruise", "d2-nissan", "d2-cupnoodles", "d2-minatomirai", "d2-night",
-  "d3-gcans-tour", "d3-railway", "d3-teamlab",
+  "d3-gcans-tour", "d3-railway", "d3-teamlab", "d3-night",
   "d4-ameyoko"
 ]);
 const MAP_COORDINATES = {
@@ -389,6 +391,7 @@ const MAP_COORDINATES = {
   "d3-gcans-tour": [35.9910983, 139.7805654],
   "d3-railway": [35.9217287, 139.6178610],
   "d3-teamlab": [35.6493800, 139.7897280],
+  "d3-night": [35.6296290, 139.7755280],
   "d4-ameyoko": [35.7100592, 139.7745428]
 };
 
