@@ -394,7 +394,6 @@ const nodes = {
   mapCount: document.querySelector("#mapCount"),
   mapPanel: document.querySelector("#mapPanel"),
   mapDayFilters: document.querySelector("#mapDayFilters"),
-  mapFullscreenButton: document.querySelector("#mapFullscreenButton"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -1214,22 +1213,6 @@ nodes.mapDayFilters.addEventListener("click", (event) => {
   mapDayFilter = button.dataset.mapDayFilter;
   persist();
   render();
-});
-
-nodes.mapFullscreenButton.addEventListener("click", async () => {
-  const isFullscreen = nodes.mapPanel.classList.toggle("is-map-fullscreen");
-  nodes.mapFullscreenButton.textContent = isFullscreen ? "전체 화면 닫기" : "전체 화면";
-  nodes.mapFullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
-  document.body.classList.toggle("map-is-fullscreen", isFullscreen);
-  if (isFullscreen) window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || !nodes.mapPanel.classList.contains("is-map-fullscreen")) return;
-  nodes.mapPanel.classList.remove("is-map-fullscreen");
-  document.body.classList.remove("map-is-fullscreen");
-  nodes.mapFullscreenButton.textContent = "전체 화면";
-  nodes.mapFullscreenButton.setAttribute("aria-pressed", "false");
 });
 
 nodes.packingList.addEventListener("change", (event) => {
