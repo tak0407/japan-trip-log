@@ -389,6 +389,9 @@ let mapMarkers = [];
 let mapRouteLine = null;
 let markerByStopId = new Map();
 let googleMapsPromise = null;
+let placeSearchElement = null;
+let searchMarker = null;
+let selectedSearchPlace = null;
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -414,6 +417,7 @@ const nodes = {
   journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
+  mapSearch: document.querySelector("#mapSearch"),
   mapDayFilters: document.querySelector("#mapDayFilters"),
   mapTimeline: document.querySelector("#mapTimeline"),
   mapCanvas: document.querySelector("#mapCanvas"),
@@ -424,6 +428,8 @@ const nodes = {
   mapSheetMeta: document.querySelector("#mapSheetMeta"),
   mapSheetItems: document.querySelector("#mapSheetItems"),
   mapSheetOpenLink: document.querySelector("#mapSheetOpenLink"),
+  mapWalkLink: document.querySelector("#mapWalkLink"),
+  mapTransitLink: document.querySelector("#mapTransitLink"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -885,6 +891,74 @@ function loadGoogleMaps() {
   return googleMapsPromise;
 }
 
+async function initializePlaceSearch() {
+  if (placeSearchElement || !window.google?.maps) return;
+  const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+  placeSearchElement = new PlaceAutocompleteElement({ includedRegionCodes: ["jp"] });
+  placeSearchElement.placeholder = "일본 장소 검색";
+  placeSearchElement.setAttribute("aria-label", "일본 장소 검색");
+  placeSearchElement.addEventListener("gmp-select", async (event) => {
+    const placePrediction = event.placePrediction;
+    if (!placePrediction) return;
+    const place = placePrediction.toPlace();
+    await place.fetchFields({ fields: ["displayName", "formattedAddress", "location", "googleMapsURI"] });
+    if (!place.location) return;
+    showSearchPlace(place);
+  });
+  nodes.mapSearch.append(placeSearchElement);
+}
+
+function clearSearchMarker() {
+  if (searchMarker) searchMarker.map = null;
+  searchMarker = null;
+  selectedSearchPlace = null;
+}
+
+function showSearchPlace(place) {
+  clearSearchMarker();
+  const position = { lat: place.location.lat(), lng: place.location.lng() };
+  const pin = new google.maps.marker.PinElement({
+    glyph: "•",
+    background: "#b7791f",
+    borderColor: "#ffffff",
+    glyphColor: "#ffffff",
+    scale: 1.15
+  });
+  searchMarker = new google.maps.marker.AdvancedMarkerElement({
+    map: tripMap,
+    position,
+    title: place.displayName || "검색한 장소",
+    content: pin.element
+  });
+  selectedSearchPlace = place;
+  searchMarker.addListener("click", () => openSearchPlaceSheet(place));
+  tripMap.panTo(position);
+  tripMap.setZoom(16);
+  openSearchPlaceSheet(place);
+}
+
+function buildDirectionsUrl(position, travelMode) {
+  const destination = `${position.lat},${position.lng}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=${travelMode}`;
+}
+
+function setMapSheetLinks(position, googleMapsUrl) {
+  nodes.mapSheetOpenLink.href = googleMapsUrl;
+  nodes.mapWalkLink.href = buildDirectionsUrl(position, "walking");
+  nodes.mapTransitLink.href = buildDirectionsUrl(position, "transit");
+}
+
+function openSearchPlaceSheet(place) {
+  const position = { lat: place.location.lat(), lng: place.location.lng() };
+  const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${position.lat},${position.lng}`)}`;
+  nodes.mapSheetDay.textContent = "검색한 장소";
+  nodes.mapSheetTitle.textContent = place.displayName || "장소";
+  nodes.mapSheetMeta.textContent = place.formattedAddress || "주소 정보 없음";
+  nodes.mapSheetItems.innerHTML = "";
+  setMapSheetLinks(position, place.googleMapsURI || fallbackUrl);
+  nodes.mapBottomSheet.hidden = false;
+}
+
 function renderMap() {
   const mappableStops = getMappableStops();
   const visibleStops = mappableStops.filter((stop) => stop.dayId === mapDayFilter);
@@ -915,6 +989,7 @@ function renderMap() {
     });
   }
   if (!tripMap) return;
+  initializePlaceSearch().catch((error) => console.error(error));
 
   mapMarkers.forEach((marker) => { marker.map = null; });
   if (mapRouteLine) {
@@ -964,7 +1039,7 @@ function renderMap() {
       const [lat, lng] = MAP_COORDINATES[stop.id];
       bounds.extend({ lat, lng });
     });
-    tripMap.fitBounds(bounds, { top: 150, right: 40, bottom: 130, left: 40 });
+    tripMap.fitBounds(bounds, { top: 210, right: 40, bottom: 130, left: 40 });
   } else if (visibleStops.length === 1) {
     const [lat, lng] = MAP_COORDINATES[visibleStops[0].id];
     tripMap.setCenter({ lat, lng });
@@ -981,7 +1056,8 @@ function openMapSheet(stop) {
   nodes.mapSheetTitle.textContent = stop.title;
   nodes.mapSheetMeta.textContent = `${stop.time} · ${stop.area} · ${stop.type}`;
   nodes.mapSheetItems.innerHTML = (stop.items || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("");
-  nodes.mapSheetOpenLink.href = stop.map;
+  const [lat, lng] = MAP_COORDINATES[stop.id];
+  setMapSheetLinks({ lat, lng }, stop.map);
   nodes.mapBottomSheet.hidden = false;
   persist();
 }
@@ -1313,6 +1389,7 @@ nodes.mapDayFilters.addEventListener("click", (event) => {
   if (!button) return;
   mapDayFilter = button.dataset.mapDayFilter;
   selectedDayId = mapDayFilter;
+  clearSearchMarker();
   nodes.mapBottomSheet.hidden = true;
   persist();
   render();

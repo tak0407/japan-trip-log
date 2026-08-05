@@ -139,6 +139,7 @@
 
         <section class="tab-panel" id="mapPanel" data-view-panel="map" hidden>
           <article class="panel map-panel">
+            <div class="map-search" id="mapSearch" aria-label="장소 검색"></div>
             <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
             <div class="map-timeline" id="mapTimeline" aria-label="선택한 날짜의 방문 장소"></div>
             <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
@@ -149,6 +150,10 @@
               <p id="mapSheetMeta"></p>
               <ul id="mapSheetItems"></ul>
               <a class="button ghost" id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+              <div class="map-route-actions" aria-label="길찾기">
+                <a class="button primary" id="mapWalkLink" href="#" target="_blank" rel="noreferrer">도보 길찾기</a>
+                <a class="button ghost" id="mapTransitLink" href="#" target="_blank" rel="noreferrer">대중교통 길찾기</a>
+              </div>
             </aside>
           </article>
         </section>
