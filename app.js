@@ -857,7 +857,10 @@ function renderMap() {
   nodes.mapBottomSheet.hidden = true;
 
   if (!tripMap && window.L) {
-    tripMap = L.map(nodes.mapCanvas, { zoomControl: false }).setView(MAP_CENTER, MAP_ZOOM);
+    tripMap = L.map(nodes.mapCanvas, {
+      zoomControl: false,
+      doubleClickZoom: false
+    }).setView(MAP_CENTER, MAP_ZOOM);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap contributors"
