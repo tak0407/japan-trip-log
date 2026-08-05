@@ -386,6 +386,7 @@ let mapDayFilter = TRIP_DAYS.some((day) => day.id === state.mapDayFilter)
 let selectedNowStopId = "";
 let tripMap = null;
 let mapMarkers = [];
+let mapRouteLine = null;
 let markerByStopId = new Map();
 let googleMapsPromise = null;
 
@@ -916,6 +917,10 @@ function renderMap() {
   if (!tripMap) return;
 
   mapMarkers.forEach((marker) => { marker.map = null; });
+  if (mapRouteLine) {
+    mapRouteLine.setMap(null);
+    mapRouteLine = null;
+  }
   markerByStopId.clear();
   mapMarkers = visibleStops.map((stop, index) => {
     const [lat, lng] = MAP_COORDINATES[stop.id];
@@ -935,6 +940,23 @@ function renderMap() {
     markerByStopId.set(stop.id, marker);
     return marker;
   });
+
+  const routePath = visibleStops.map((stop) => {
+    const [lat, lng] = MAP_COORDINATES[stop.id];
+    return { lat, lng };
+  });
+  nodes.mapCanvas.dataset.routePoints = String(routePath.length);
+  if (routePath.length > 1) {
+    mapRouteLine = new google.maps.Polyline({
+      map: tripMap,
+      path: routePath,
+      geodesic: true,
+      strokeColor: "#286f9e",
+      strokeOpacity: 0.9,
+      strokeWeight: 5,
+      clickable: false
+    });
+  }
 
   if (visibleStops.length > 1) {
     const bounds = new google.maps.LatLngBounds();
