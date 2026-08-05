@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-title" content="Japan Trip Log">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <title>Japan Trip Log</title>
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -141,6 +140,7 @@
         <section class="tab-panel" id="mapPanel" data-view-panel="map" hidden>
           <article class="panel map-panel">
             <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
+            <div class="map-timeline" id="mapTimeline" aria-label="선택한 날짜의 방문 장소"></div>
             <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
             <aside class="map-bottom-sheet" id="mapBottomSheet" hidden aria-live="polite">
               <button class="map-sheet-close" id="mapSheetClose" type="button" aria-label="장소 상세정보 닫기">×</button>
@@ -259,7 +259,7 @@
       </button>
     </nav>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+    <script src="google-maps-config.js"></script>
     <script src="app.js" defer></script>
     <script>
       if ("serviceWorker" in navigator) {

@@ -350,15 +350,25 @@ const CALENDAR_START_MINUTES = 7 * 60;
 const CALENDAR_END_MINUTES = 23 * 60;
 const MAP_CENTER = [35.6814, 139.7658];
 const MAP_ZOOM = 10;
+const PINNED_STOP_IDS = new Set([
+  "d1-asakusa", "d1-shibuya",
+  "d2-cruise", "d2-nissan", "d2-cupnoodles", "d2-minatomirai", "d2-night",
+  "d3-gcans-tour", "d3-railway", "d3-teamlab",
+  "d4-fuji-tour", "d4-ameyoko"
+]);
 const MAP_COORDINATES = {
-  "d1-move-asakusa": [35.7118, 139.7967], "d1-asakusa": [35.7148, 139.7967],
-  "d1-move-shibuya": [35.6595, 139.7005], "d1-shibuya": [35.6595, 139.7005], "d1-return": [35.7074, 139.7747],
-  "d2-yokosuka-arrive": [35.2920, 139.6670], "d2-cruise": [35.2920, 139.6670], "d2-yokohama-move": [35.4657, 139.6220],
-  "d2-nissan": [35.4662, 139.6244], "d2-cupnoodles": [35.4560, 139.6630], "d2-minatomirai": [35.4575, 139.6350], "d2-night": [35.4548, 139.6500],
-  "d3-gcans-arrive": [35.8830, 139.8260], "d3-gcans-tour": [35.8830, 139.8260], "d3-omiya-lunch": [35.9060, 139.6230],
-  "d3-railway": [35.9220, 139.6020], "d3-tsukishima": [35.6640, 139.7820], "d3-monja": [35.6640, 139.7820],
-  "d3-teamlab": [35.6456, 139.7897], "d3-night": [35.6260, 139.7740], "d4-tokyo-station": [35.6814, 139.7658],
-  "d4-fuji-tour": [35.3606, 138.7274], "d4-ameyoko": [35.7077, 139.7745]
+  "d1-asakusa": [35.7134032, 139.7955265],
+  "d1-shibuya": [35.6590597, 139.7006279],
+  "d2-cruise": [35.2831231, 139.6616122],
+  "d2-nissan": [35.4637, 139.6250],
+  "d2-cupnoodles": [35.4554856, 139.6388810],
+  "d2-minatomirai": [35.4594441, 139.6323669],
+  "d2-night": [35.4524046, 139.6429182],
+  "d3-gcans-tour": [35.9910983, 139.7805654],
+  "d3-railway": [35.9217287, 139.6178610],
+  "d3-teamlab": [35.6493800, 139.7897280],
+  "d4-fuji-tour": [35.3628384, 138.7307677],
+  "d4-ameyoko": [35.7100592, 139.7745428]
 };
 
 const state = loadState();
@@ -370,10 +380,14 @@ if (state.appVersion !== APP_VERSION) {
 let selectedDayId = state.selectedDayId || TRIP_DAYS[0].id;
 let activeView = VIEWS.includes(state.activeView) ? state.activeView : "now";
 let selectedMapStopId = state.selectedMapStopId || "";
-let mapDayFilter = state.mapDayFilter || "all";
+let mapDayFilter = TRIP_DAYS.some((day) => day.id === state.mapDayFilter)
+  ? state.mapDayFilter
+  : selectedDayId;
 let selectedNowStopId = "";
 let tripMap = null;
 let mapMarkers = [];
+let markerByStopId = new Map();
+let googleMapsPromise = null;
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -400,6 +414,7 @@ const nodes = {
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
   mapDayFilters: document.querySelector("#mapDayFilters"),
+  mapTimeline: document.querySelector("#mapTimeline"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapBottomSheet: document.querySelector("#mapBottomSheet"),
   mapSheetClose: document.querySelector("#mapSheetClose"),
@@ -484,7 +499,7 @@ function getStopById(stopId) {
 
 function getMappableStops() {
   return TRIP_DAYS.flatMap((day) => day.stops
-    .filter((stop) => stop.map && MAP_COORDINATES[stop.id])
+    .filter((stop) => stop.map && PINNED_STOP_IDS.has(stop.id) && MAP_COORDINATES[stop.id])
     .map((stop) => ({ ...stop, dayId: day.id, dayLabel: day.label, dayTitle: day.title })));
 }
 
@@ -610,6 +625,10 @@ function renderActiveView() {
       button.removeAttribute("aria-current");
     }
   });
+
+  if (activeView === "map") {
+    loadGoogleMaps().then(renderMap).catch((error) => console.error(error));
+  }
 }
 
 function renderMetrics() {
@@ -844,46 +863,94 @@ function renderStops() {
   }).join("");
 }
 
+function loadGoogleMaps() {
+  if (window.google?.maps) return Promise.resolve(window.google.maps);
+  if (googleMapsPromise) return googleMapsPromise;
+
+  googleMapsPromise = new Promise((resolve, reject) => {
+    const apiKey = window.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      reject(new Error("Google Maps API key is missing"));
+      return;
+    }
+
+    window.__japanTripGoogleMapsReady = () => resolve(window.google.maps);
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&language=ko&region=JP&libraries=marker&loading=async&callback=__japanTripGoogleMapsReady`;
+    script.async = true;
+    script.onerror = () => reject(new Error("Google Maps failed to load"));
+    document.head.append(script);
+  });
+  return googleMapsPromise;
+}
+
 function renderMap() {
   const mappableStops = getMappableStops();
-  const visibleStops = mapDayFilter === "all"
-    ? mappableStops
-    : mappableStops.filter((stop) => stop.dayId === mapDayFilter);
+  const visibleStops = mappableStops.filter((stop) => stop.dayId === mapDayFilter);
 
-  nodes.mapDayFilters.innerHTML = [
-    `<button class="map-day-filter" type="button" data-map-day-filter="all" aria-pressed="${mapDayFilter === "all" ? "true" : "false"}">전체</button>`,
-    ...TRIP_DAYS.map((day) => `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label)}</button>`)
-  ].join("");
+  nodes.mapDayFilters.innerHTML = TRIP_DAYS.map((day) => (
+    `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label)}</button>`
+  )).join("");
+  nodes.mapTimeline.innerHTML = visibleStops.length
+    ? visibleStops.map((stop, index) => `
+      <button class="map-timeline-stop" type="button" data-map-timeline-stop-id="${stop.id}">
+        <span class="map-timeline-time">${escapeHTML(stop.time)}</span>
+        <span class="map-timeline-dot">${index + 1}</span>
+        <strong>${escapeHTML(stop.title)}</strong>
+      </button>
+    `).join("")
+    : '<span class="map-timeline-empty">장소 확정 전</span>';
   nodes.mapBottomSheet.hidden = true;
 
-  if (!tripMap && window.L) {
-    tripMap = L.map(nodes.mapCanvas, {
-      zoomControl: false,
-      doubleClickZoom: false
-    }).setView(MAP_CENTER, MAP_ZOOM);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors"
-    }).addTo(tripMap);
+  if (!tripMap && window.google?.maps) {
+    tripMap = new google.maps.Map(nodes.mapCanvas, {
+      center: { lat: MAP_CENTER[0], lng: MAP_CENTER[1] },
+      zoom: MAP_ZOOM,
+      mapId: "DEMO_MAP_ID",
+      disableDefaultUI: true,
+      disableDoubleClickZoom: true,
+      clickableIcons: false,
+      gestureHandling: "greedy"
+    });
   }
   if (!tripMap) return;
 
-  mapMarkers.forEach((marker) => marker.remove());
+  mapMarkers.forEach((marker) => { marker.map = null; });
+  markerByStopId.clear();
   mapMarkers = visibleStops.map((stop, index) => {
-    const marker = L.marker(MAP_COORDINATES[stop.id], { title: stop.title }).addTo(tripMap);
-    marker.bindTooltip(`${index + 1}. ${stop.title}`, { direction: "top", offset: [0, -16] });
-    marker.on("click", () => openMapSheet(stop));
+    const [lat, lng] = MAP_COORDINATES[stop.id];
+    const pin = new google.maps.marker.PinElement({
+      glyph: String(index + 1),
+      background: "#286f9e",
+      borderColor: "#ffffff",
+      glyphColor: "#ffffff"
+    });
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map: tripMap,
+      position: { lat, lng },
+      title: stop.title,
+      content: pin.element
+    });
+    marker.addListener("click", () => openMapSheet(stop));
+    markerByStopId.set(stop.id, marker);
     return marker;
   });
 
   if (visibleStops.length > 1) {
-    tripMap.fitBounds(L.latLngBounds(visibleStops.map((stop) => MAP_COORDINATES[stop.id])), { padding: [36, 36], maxZoom: 14 });
+    const bounds = new google.maps.LatLngBounds();
+    visibleStops.forEach((stop) => {
+      const [lat, lng] = MAP_COORDINATES[stop.id];
+      bounds.extend({ lat, lng });
+    });
+    tripMap.fitBounds(bounds, { top: 150, right: 40, bottom: 130, left: 40 });
   } else if (visibleStops.length === 1) {
-    tripMap.setView(MAP_COORDINATES[visibleStops[0].id], 15);
+    const [lat, lng] = MAP_COORDINATES[visibleStops[0].id];
+    tripMap.setCenter({ lat, lng });
+    tripMap.setZoom(15);
   } else {
-    tripMap.setView(MAP_CENTER, MAP_ZOOM);
+    tripMap.setCenter({ lat: MAP_CENTER[0], lng: MAP_CENTER[1] });
+    tripMap.setZoom(MAP_ZOOM);
   }
-  window.setTimeout(() => tripMap.invalidateSize(), 0);
 }
 
 function openMapSheet(stop) {
@@ -1223,9 +1290,21 @@ nodes.mapDayFilters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-map-day-filter]");
   if (!button) return;
   mapDayFilter = button.dataset.mapDayFilter;
+  selectedDayId = mapDayFilter;
   nodes.mapBottomSheet.hidden = true;
   persist();
   render();
+});
+
+nodes.mapTimeline.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-map-timeline-stop-id]");
+  if (!button || !tripMap) return;
+  const stop = getMappableStops().find((item) => item.id === button.dataset.mapTimelineStopId);
+  if (!stop) return;
+  const [lat, lng] = MAP_COORDINATES[stop.id];
+  tripMap.panTo({ lat, lng });
+  tripMap.setZoom(15);
+  openMapSheet(stop);
 });
 
 nodes.packingList.addEventListener("change", (event) => {
@@ -1334,7 +1413,9 @@ nodes.importInput.addEventListener("change", async (event) => {
     selectedDayId = imported.selectedDayId || selectedDayId;
     activeView = VIEWS.includes(imported.activeView) ? imported.activeView : activeView;
     selectedMapStopId = imported.selectedMapStopId || selectedMapStopId;
-    mapDayFilter = imported.mapDayFilter || mapDayFilter;
+    mapDayFilter = TRIP_DAYS.some((day) => day.id === imported.mapDayFilter)
+      ? imported.mapDayFilter
+      : selectedDayId;
     persist();
     render();
   } catch (error) {
@@ -1351,7 +1432,7 @@ nodes.resetButton.addEventListener("click", () => {
   Object.assign(state, loadState());
   selectedDayId = TRIP_DAYS[0].id;
   selectedMapStopId = "";
-  mapDayFilter = "all";
+  mapDayFilter = TRIP_DAYS[0].id;
   selectedNowStopId = "";
   activeView = "now";
   render();
