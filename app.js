@@ -889,7 +889,7 @@ function renderMap() {
   const visibleStops = mappableStops.filter((stop) => stop.dayId === mapDayFilter);
 
   nodes.mapDayFilters.innerHTML = TRIP_DAYS.map((day) => (
-    `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label)}</button>`
+    `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label.split(" ")[0])}</button>`
   )).join("");
   nodes.mapTimeline.innerHTML = visibleStops.length
     ? visibleStops.map((stop, index) => `
