@@ -395,6 +395,154 @@ const MAP_COORDINATES = {
   "d4-ameyoko": [35.7100592, 139.7745428]
 };
 
+const PLACE_DETAILS = {
+  "d1-asakusa": {
+    symbol: "寺",
+    summary: "카미나리몬에서 나카미세 거리를 지나 센소지 본당까지 이어지는 아사쿠사의 대표 산책 동선.",
+    hours: "본당 06:00-17:00 (8월)",
+    fee: "무료",
+    transit: "아사쿠사역에서 도보 약 5분",
+    duration: "약 2시간",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.senso-ji.jp/",
+    highlights: ["카미나리몬 사진 촬영", "나카미세 거리 간식과 기념품", "센소지 본당과 오층탑"],
+    tips: ["본당 내부와 참배객의 동선을 방해하지 않기", "나카미세 상점은 늦은 오후부터 순차 마감"]
+  },
+  "d1-shibuya": {
+    symbol: "渋",
+    summary: "하치코 동상을 시작점으로 스크램블 교차로와 시부야 중심가의 야경을 둘러보는 일정.",
+    hours: "야외 공간 상시 개방",
+    fee: "무료",
+    transit: "시부야역 하치코 출구 바로 앞",
+    duration: "약 2시간 20분",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.gotokyo.org/jp/kanko/shibuya/spot/p_0050.html",
+    highlights: ["하치코 동상", "스크램블 교차로 횡단", "센터가이와 시부야 네온 거리"],
+    tips: ["퇴근 시간대에는 매우 혼잡하므로 사진 촬영 중 보행 방해 주의", "하치코 동상과 교차로는 도보 1분 거리"]
+  },
+  "d2-cruise": {
+    symbol: "艦",
+    summary: "미 해군과 해상자위대 함정을 가까이에서 보는 약 45분간의 요코스카 항만 크루즈.",
+    hours: "통상 10:00-16:00 매시 운항",
+    fee: "성인 ¥2,000-2,500 (운항일 등급별)",
+    transit: "시오이리역 도보 약 5분 · Coaska 2층 발권",
+    duration: "승선 약 45분",
+    reservation: "사전 예약 권장",
+    officialUrl: "https://yokosuka-gunko.jp/information/",
+    highlights: ["미 해군 요코스카 기지", "해상자위대 함정과 잠수함", "생방송 선내 가이드"],
+    tips: ["10:00편 운항 여부와 예약 상태를 전날 다시 확인", "출항 전에 2층 시오이리 터미널에서 발권"]
+  },
+  "d2-nissan": {
+    symbol: "N",
+    summary: "최신 닛산 차량과 기술, 헤리티지 전시를 자유롭게 체험하는 글로벌 본사 갤러리.",
+    hours: "평일 10:00-18:00",
+    fee: "무료",
+    transit: "요코하마역 동쪽 출구 도보 7분",
+    duration: "약 1시간",
+    reservation: "일반 관람 예약 불필요",
+    officialUrl: "https://www2.nissan.co.jp/GALLERY/HQ/",
+    highlights: ["최신 전시 차량", "헤리티지 존과 코리도", "닛산 부티크와 갤러리 카페"],
+    tips: ["일부 전시 차량은 실제 탑승 가능", "2026년 8월 12일은 공식 휴관일 목록에 없음"]
+  },
+  "d2-cupnoodles": {
+    symbol: "杯",
+    summary: "인스턴트 라면의 역사와 발명 과정을 보고 나만의 컵누들을 만들 수 있는 체험형 박물관.",
+    hours: "10:00-18:00 · 입장 마감 17:00",
+    fee: "성인 ¥500 · 체험 별도",
+    transit: "미나토미라이역·바샤미치역 도보 8분",
+    duration: "약 1시간 30분",
+    reservation: "온라인 티켓·체험 예약 확인",
+    officialUrl: "https://www.cupnoodles-museum.jp/ko/yokohama/",
+    highlights: ["인스턴트 누들 히스토리 큐브", "마이 컵누들 팩토리", "뮤지엄 숍"],
+    tips: ["화요일 휴관이지만 여행일은 수요일", "마이 컵누들 팩토리는 현장 번호표가 필요할 수 있음"]
+  },
+  "d2-minatomirai": {
+    symbol: "港",
+    summary: "랜드마크 타워를 기준점으로 항구와 고층 빌딩 사이를 걷는 미나토미라이 산책.",
+    hours: "상점 11:00-20:00 · 식당은 매장별 상이",
+    fee: "산책 무료 · 시설별 별도",
+    transit: "미나토미라이역 도보 3분",
+    duration: "약 1시간",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.yokohama-landmark.jp/",
+    highlights: ["랜드마크 플라자", "항구 방향 스카이라인", "사쿠라기초 방면 보행로"],
+    tips: ["다음 일정인 컵누들 박물관·빨간벽돌창고 방향으로 이어 걷기 좋음"]
+  },
+  "d2-night": {
+    symbol: "煉",
+    summary: "빨간벽돌창고를 중심으로 관람차와 항구 조명이 이어지는 요코하마 대표 야경 코스.",
+    hours: "1호관 10:00-19:00 · 2호관 11:00-20:00",
+    fee: "야외 관람 무료",
+    transit: "바샤미치역·니혼오도리역 도보 6분",
+    duration: "약 2시간 30분",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.yokohama-akarenga.jp/",
+    highlights: ["빨간벽돌창고 야간 조명", "코스모클락 21 관람차", "항구 산책로"],
+    tips: ["실내 상점은 야경 일정 중 먼저 마감", "관람차 탑승 시 운영 종료 시간을 현장에서 확인"]
+  },
+  "d3-gcans-tour": {
+    symbol: "龍",
+    summary: "수도권 침수를 막는 거대 지하 방수로의 조압수조를 내려가 보는 55분 기본 투어.",
+    hours: "예약 시간 10:00-10:55",
+    fee: "지하신전 코스 1인 ¥1,200",
+    transit: "미나미사쿠라이역 도보 25-30분",
+    duration: "약 55분",
+    reservation: "사전 예약 필수",
+    officialUrl: "https://gaikaku.jp/",
+    highlights: ["거대한 조압수조", "59개의 콘크리트 기둥", "치수 시설 해설"],
+    tips: ["예약 확인 화면과 운동화 준비", "계단 이동이 포함되므로 시작 전에 화장실 이용"]
+  },
+  "d3-railway": {
+    symbol: "鉄",
+    summary: "실물 철도 차량과 운전 체험, 철도 기술과 역사를 한곳에서 보는 대형 철도 박물관.",
+    hours: "10:00-17:00",
+    fee: "성인 사전 ¥1,500 · 당일 ¥1,600",
+    transit: "철도박물관역에서 도보 1분",
+    duration: "약 3시간",
+    reservation: "온라인 사전 입장권 권장",
+    officialUrl: "https://www.railway-museum.jp/",
+    highlights: ["차량 스테이션 실물 열차", "철도 디오라마", "운전·업무 체험 프로그램"],
+    tips: ["화요일 휴관이지만 여행일은 목요일", "체험 프로그램은 입장 후 별도 추첨·접수가 있을 수 있음"]
+  },
+  "d3-teamlab": {
+    symbol: "光",
+    summary: "물과 정원, 빛의 작품 안을 맨발로 이동하며 몸 전체로 체험하는 몰입형 미술관.",
+    hours: "날짜별 상이 · 예약 입장 18:30",
+    fee: "성인 ¥3,600부터",
+    transit: "신토요스역 도보 1분",
+    duration: "약 2시간 30분",
+    reservation: "시간 지정 티켓 필수",
+    officialUrl: "https://teamlabplanets.dmm.com/",
+    highlights: ["Water Area", "Garden Area", "대형 몰입형 빛 작품"],
+    tips: ["무릎 정도까지 물에 들어가는 구간이 있어 걷기 편한 복장 권장", "QR 티켓은 입장 전에 미리 화면에 띄워두기"]
+  },
+  "d3-night": {
+    symbol: "橋",
+    summary: "레인보우브리지와 도쿄 도심 조명을 한눈에 보는 오다이바의 대표 해변 야경 포인트.",
+    hours: "상시 개방",
+    fee: "무료",
+    transit: "오다이바카이힌코엔역·다이바역 도보 3분",
+    duration: "선택 약 1시간",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.tptc.co.jp/park/01_02",
+    highlights: ["레인보우브리지 야경", "오다이바 자유의 여신상", "도쿄만 해변 산책"],
+    tips: ["TeamLab 종료 후 피로도와 막차 시간을 보고 선택", "해변은 바람이 강할 수 있음"]
+  },
+  "d4-ameyoko": {
+    symbol: "横",
+    summary: "식품·과자·화장품·잡화점이 밀집한 우에노와 오카치마치 사이의 전통 시장 거리.",
+    hours: "점포별 상이 · 다수 10:00-19:00 전후",
+    fee: "무료",
+    transit: "우에노역·오카치마치역에서 바로 연결",
+    duration: "약 1시간 30분",
+    reservation: "예약 불필요",
+    officialUrl: "https://www.ameyoko.net/",
+    highlights: ["일본 과자와 식품", "드럭스토어와 화장품", "여행 마지막 기념품 쇼핑"],
+    tips: ["19:30 도착이면 이미 마감한 상점이 많을 수 있음", "꼭 살 품목은 영업 중인 매장부터 우선 확인"],
+    notice: "현재 일정은 19:30 시작이라 일반 상점 쇼핑 시간이 짧을 수 있어요."
+  }
+};
+
 const state = loadState();
 if (state.appVersion !== APP_VERSION) {
   state.activeView = "now";
@@ -452,7 +600,24 @@ const nodes = {
   mapSheetMeta: document.querySelector("#mapSheetMeta"),
   mapSheetAddress: document.querySelector("#mapSheetAddress"),
   mapSheetItems: document.querySelector("#mapSheetItems"),
+  mapSheetDetailButton: document.querySelector("#mapSheetDetailButton"),
   mapSheetOpenLink: document.querySelector("#mapSheetOpenLink"),
+  placeDetailView: document.querySelector("#placeDetailView"),
+  placeDetailClose: document.querySelector("#placeDetailClose"),
+  placeDetailScroll: document.querySelector("#placeDetailScroll"),
+  placeDetailHeaderTitle: document.querySelector("#placeDetailHeaderTitle"),
+  placeDetailSymbol: document.querySelector("#placeDetailSymbol"),
+  placeDetailDay: document.querySelector("#placeDetailDay"),
+  placeDetailTitle: document.querySelector("#placeDetailTitle"),
+  placeDetailSummary: document.querySelector("#placeDetailSummary"),
+  placeDetailMapPlace: document.querySelector("#placeDetailMapPlace"),
+  placeDetailAddress: document.querySelector("#placeDetailAddress"),
+  placeDetailInfo: document.querySelector("#placeDetailInfo"),
+  placeDetailNotice: document.querySelector("#placeDetailNotice"),
+  placeDetailHighlights: document.querySelector("#placeDetailHighlights"),
+  placeDetailTips: document.querySelector("#placeDetailTips"),
+  placeDetailOfficialLink: document.querySelector("#placeDetailOfficialLink"),
+  placeDetailMapLink: document.querySelector("#placeDetailMapLink"),
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
@@ -968,8 +1133,55 @@ function openSearchPlaceSheet(place) {
   nodes.mapSheetMeta.textContent = place.formattedAddress || "주소 정보 없음";
   nodes.mapSheetAddress.textContent = "";
   nodes.mapSheetItems.innerHTML = "";
+  nodes.mapSheetDetailButton.hidden = true;
   nodes.mapSheetOpenLink.href = place.googleMapsURI || fallbackUrl;
   nodes.mapBottomSheet.hidden = false;
+}
+
+function renderPlaceDetailList(node, items) {
+  node.innerHTML = items.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
+}
+
+function openPlaceDetail(stop) {
+  const detail = PLACE_DETAILS[stop.id];
+  if (!detail) return;
+
+  const infoItems = [
+    ["운영시간", detail.hours],
+    ["입장·요금", detail.fee],
+    ["교통", detail.transit],
+    ["체류시간", detail.duration],
+    ["예약", detail.reservation]
+  ];
+
+  nodes.placeDetailHeaderTitle.textContent = stop.mapPlace || stop.title;
+  nodes.placeDetailSymbol.textContent = detail.symbol;
+  nodes.placeDetailDay.textContent = `${stop.dayLabel} · ${stop.time} · ${stop.type}`;
+  nodes.placeDetailTitle.textContent = stop.title;
+  nodes.placeDetailSummary.textContent = detail.summary;
+  nodes.placeDetailMapPlace.textContent = stop.mapPlace || stop.title;
+  nodes.placeDetailAddress.textContent = stop.address;
+  nodes.placeDetailInfo.innerHTML = infoItems.map(([label, value]) => `
+    <div class="place-detail-info-item">
+      <span>${escapeHTML(label)}</span>
+      <strong>${escapeHTML(value)}</strong>
+    </div>
+  `).join("");
+  nodes.placeDetailNotice.textContent = detail.notice || "";
+  nodes.placeDetailNotice.hidden = !detail.notice;
+  renderPlaceDetailList(nodes.placeDetailHighlights, detail.highlights);
+  renderPlaceDetailList(nodes.placeDetailTips, detail.tips);
+  nodes.placeDetailOfficialLink.href = detail.officialUrl;
+  nodes.placeDetailMapLink.href = stop.map;
+  nodes.mapBottomSheet.hidden = true;
+  nodes.placeDetailView.hidden = false;
+  nodes.placeDetailScroll.scrollTop = 0;
+  nodes.placeDetailClose.focus();
+}
+
+function closePlaceDetail() {
+  nodes.placeDetailView.hidden = true;
+  nodes.mapSheetDetailButton.focus();
 }
 
 function renderMap() {
@@ -1070,6 +1282,8 @@ function openMapSheet(stop) {
   nodes.mapSheetMeta.textContent = `${stop.time} · ${stop.area} · ${stop.type}`;
   nodes.mapSheetAddress.textContent = `${stop.mapPlace || stop.title} · ${stop.address}`;
   nodes.mapSheetItems.innerHTML = (stop.items || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("");
+  nodes.mapSheetDetailButton.hidden = !PLACE_DETAILS[stop.id];
+  nodes.mapSheetDetailButton.dataset.stopId = stop.id;
   nodes.mapSheetOpenLink.href = stop.map;
   nodes.mapBottomSheet.hidden = false;
   persist();
@@ -1397,12 +1611,26 @@ nodes.mapSheetClose.addEventListener("click", () => {
   nodes.mapBottomSheet.hidden = true;
 });
 
+nodes.mapSheetDetailButton.addEventListener("click", () => {
+  const stop = getMappableStops().find((item) => item.id === nodes.mapSheetDetailButton.dataset.stopId);
+  if (stop) openPlaceDetail(stop);
+});
+
+nodes.placeDetailClose.addEventListener("click", closePlaceDetail);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !nodes.placeDetailView.hidden) {
+    closePlaceDetail();
+  }
+});
+
 nodes.mapDayFilters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-map-day-filter]");
   if (!button) return;
   mapDayFilter = button.dataset.mapDayFilter;
   selectedDayId = mapDayFilter;
   clearSearchMarker();
+  nodes.placeDetailView.hidden = true;
   nodes.mapBottomSheet.hidden = true;
   persist();
   render();

@@ -150,8 +150,48 @@
               <p id="mapSheetMeta"></p>
               <p class="map-sheet-address" id="mapSheetAddress"></p>
               <ul id="mapSheetItems"></ul>
-              <a class="button primary full" id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+              <div class="map-sheet-actions">
+                <button class="button primary full" id="mapSheetDetailButton" type="button">장소 상세보기</button>
+                <a class="button ghost full" id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+              </div>
             </aside>
+            <section class="place-detail-view" id="placeDetailView" role="dialog" aria-modal="true" aria-labelledby="placeDetailTitle" hidden>
+              <header class="place-detail-header">
+                <button class="place-detail-back" id="placeDetailClose" type="button" aria-label="지도 상세정보로 돌아가기">‹</button>
+                <div>
+                  <p>PLACE DETAIL</p>
+                  <strong id="placeDetailHeaderTitle">장소 상세</strong>
+                </div>
+              </header>
+              <div class="place-detail-scroll" id="placeDetailScroll">
+                <section class="place-detail-hero">
+                  <span class="place-detail-symbol" id="placeDetailSymbol" aria-hidden="true">旅</span>
+                  <p class="place-detail-day" id="placeDetailDay"></p>
+                  <h2 id="placeDetailTitle">장소 상세</h2>
+                  <p class="place-detail-summary" id="placeDetailSummary"></p>
+                </section>
+                <section class="place-detail-section place-detail-location">
+                  <p class="place-detail-label">대표 지점</p>
+                  <strong id="placeDetailMapPlace"></strong>
+                  <p id="placeDetailAddress"></p>
+                </section>
+                <div class="place-detail-info" id="placeDetailInfo"></div>
+                <p class="place-detail-notice" id="placeDetailNotice" hidden></p>
+                <section class="place-detail-section">
+                  <p class="place-detail-label">놓치지 말 것</p>
+                  <ul class="place-detail-list" id="placeDetailHighlights"></ul>
+                </section>
+                <section class="place-detail-section">
+                  <p class="place-detail-label">여행 메모</p>
+                  <ul class="place-detail-list muted" id="placeDetailTips"></ul>
+                </section>
+                <p class="place-detail-updated">2026년 8월 여행 기준 · 운영정보는 방문 전 공식 페이지에서 다시 확인</p>
+              </div>
+              <footer class="place-detail-actions">
+                <a class="button ghost" id="placeDetailOfficialLink" href="#" target="_blank" rel="noreferrer">공식 정보</a>
+                <a class="button primary" id="placeDetailMapLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
+              </footer>
+            </section>
           </article>
         </section>
 
