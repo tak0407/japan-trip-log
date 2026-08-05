@@ -142,6 +142,14 @@
           <article class="panel map-panel">
             <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
             <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
+            <aside class="map-bottom-sheet" id="mapBottomSheet" hidden aria-live="polite">
+              <button class="map-sheet-close" id="mapSheetClose" type="button" aria-label="장소 상세정보 닫기">×</button>
+              <p class="panel-kicker" id="mapSheetDay">장소</p>
+              <h2 id="mapSheetTitle">장소 상세정보</h2>
+              <p id="mapSheetMeta"></p>
+              <ul id="mapSheetItems"></ul>
+              <a class="button ghost" id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+            </aside>
           </article>
         </section>
 
