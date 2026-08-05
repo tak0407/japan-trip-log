@@ -19,7 +19,9 @@ const TRIP_DAYS = [
         title: "아사쿠사 관광",
         area: "아사쿠사",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Senso-ji%20Kaminarimon%20Nakamise%20Tokyo",
+        mapPlace: "센소지",
+        address: "〒111-0032 도쿄도 다이토구 아사쿠사 2-3-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Senso-ji%202-3-1%20Asakusa%20Taito%20Tokyo",
         items: ["카미나리몬", "나카미세 거리", "센소지", "아사쿠사 주변 산책"]
       },
       {
@@ -43,7 +45,9 @@ const TRIP_DAYS = [
         title: "시부야 관광",
         area: "시부야",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Hachiko%20Statue%20Shibuya%20Scramble%20Crossing",
+        mapPlace: "하치코 동상",
+        address: "도쿄도 시부야구 도겐자카 2-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Hachiko%20Statue%202-1%20Dogenzaka%20Shibuya%20Tokyo",
         items: ["하치코 동상", "스크램블 교차로", "시부야 거리 야경"],
         note: "시부야 스카이는 시간상 생략 추천. 후지산, TeamLab, 요코하마 야경 일정이 있음."
       },
@@ -84,7 +88,9 @@ const TRIP_DAYS = [
         title: "요코스카 군항크루즈",
         area: "요코스카",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Yokosuka%20Naval%20Port%20Cruise"
+        mapPlace: "YOKOSUKA 군항 크루즈 시오이리 터미널",
+        address: "〒238-0041 가나가와현 요코스카시 혼초 2-1-12",
+        map: "https://www.google.com/maps/search/?api=1&query=YOKOSUKA%20Naval%20Port%20Cruise%202-1-12%20Honcho%20Yokosuka"
       },
       {
         id: "d2-yokohama-move",
@@ -107,7 +113,9 @@ const TRIP_DAYS = [
         title: "닛산 갤러리",
         area: "요코하마",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Nissan%20Gallery%20Yokohama"
+        mapPlace: "닛산 글로벌 본사 갤러리",
+        address: "〒220-8686 가나가와현 요코하마시 니시구 다카시마 1-1-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Nissan%20Global%20Headquarters%20Gallery%201-1-1%20Takashima%20Yokohama"
       },
       {
         id: "d2-cupnoodles",
@@ -115,7 +123,9 @@ const TRIP_DAYS = [
         title: "컵누들 박물관",
         area: "요코하마",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Cup%20Noodles%20Museum%20Yokohama"
+        mapPlace: "컵누들 뮤지엄 요코하마",
+        address: "〒231-0001 가나가와현 요코하마시 나카구 신코 2-3-4",
+        map: "https://www.google.com/maps/search/?api=1&query=CUPNOODLES%20MUSEUM%20YOKOHAMA%202-3-4%20Shinko"
       },
       {
         id: "d2-minatomirai",
@@ -123,7 +133,9 @@ const TRIP_DAYS = [
         title: "미나토미라이 산책",
         area: "요코하마",
         type: "산책",
-        map: "https://www.google.com/maps/search/?api=1&query=Minatomirai%20Yokohama"
+        mapPlace: "요코하마 랜드마크 타워",
+        address: "〒220-0012 가나가와현 요코하마시 니시구 미나토미라이 2-2-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Yokohama%20Landmark%20Tower%202-2-1%20Minatomirai"
       },
       {
         id: "d2-dinner",
@@ -138,7 +150,9 @@ const TRIP_DAYS = [
         title: "요코하마 야경",
         area: "요코하마",
         type: "야경",
-        map: "https://www.google.com/maps/search/?api=1&query=Yokohama%20Red%20Brick%20Warehouse%20Cosmo%20World",
+        mapPlace: "요코하마 빨간벽돌창고",
+        address: "〒231-0001 가나가와현 요코하마시 나카구 신코 1-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Yokohama%20Red%20Brick%20Warehouse%201-1%20Shinko",
         items: ["빨간벽돌창고", "관람차", "항구 산책"]
       },
       {
@@ -177,7 +191,9 @@ const TRIP_DAYS = [
         title: "G-Cans 투어",
         area: "수도권 외곽 방수로",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=G-Cans%20Saitama"
+        mapPlace: "류큐칸(龍Q館)",
+        address: "〒344-0111 사이타마현 가스카베시 가미카나사키 720",
+        map: "https://www.google.com/maps/search/?api=1&query=Ryukyukan%20720%20Kamikanasaki%20Kasukabe"
       },
       {
         id: "d3-omiya-lunch",
@@ -193,7 +209,9 @@ const TRIP_DAYS = [
         title: "사이타마 철도박물관",
         area: "오미야",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=Railway%20Museum%20Saitama"
+        mapPlace: "철도박물관",
+        address: "〒330-0852 사이타마현 사이타마시 오미야구 오나리초 3-47",
+        map: "https://www.google.com/maps/search/?api=1&query=The%20Railway%20Museum%203-47%20Onaricho%20Omiya%20Saitama"
       },
       {
         id: "d3-tokyo-move",
@@ -224,7 +242,9 @@ const TRIP_DAYS = [
         title: "TeamLab Planets",
         area: "도요스",
         type: "관광",
-        map: "https://www.google.com/maps/search/?api=1&query=TeamLab%20Planets%20Tokyo"
+        mapPlace: "teamLab Planets TOKYO",
+        address: "〒135-0061 도쿄도 고토구 도요스 6-1-16",
+        map: "https://www.google.com/maps/search/?api=1&query=teamLab%20Planets%20TOKYO%206-1-16%20Toyosu"
       },
       {
         id: "d3-night",
@@ -285,7 +305,9 @@ const TRIP_DAYS = [
         title: "아메요코 쇼핑",
         area: "우에노",
         type: "쇼핑",
-        map: "https://www.google.com/maps/search/?api=1&query=Ameyoko%20Ueno%20Tokyo",
+        mapPlace: "아메요코 플라자",
+        address: "〒110-0005 도쿄도 다이토구 우에노 6-10-7",
+        map: "https://www.google.com/maps/search/?api=1&query=Ameyoko%20Plaza%206-10-7%20Ueno%20Taito%20Tokyo",
         items: ["일본 과자", "기념품", "드럭스토어", "식품류"]
       },
       {
@@ -354,20 +376,19 @@ const PINNED_STOP_IDS = new Set([
   "d1-asakusa", "d1-shibuya",
   "d2-cruise", "d2-nissan", "d2-cupnoodles", "d2-minatomirai", "d2-night",
   "d3-gcans-tour", "d3-railway", "d3-teamlab",
-  "d4-fuji-tour", "d4-ameyoko"
+  "d4-ameyoko"
 ]);
 const MAP_COORDINATES = {
-  "d1-asakusa": [35.7134032, 139.7955265],
+  "d1-asakusa": [35.7147651, 139.7966553],
   "d1-shibuya": [35.6590597, 139.7006279],
   "d2-cruise": [35.2831231, 139.6616122],
   "d2-nissan": [35.4637, 139.6250],
   "d2-cupnoodles": [35.4554856, 139.6388810],
-  "d2-minatomirai": [35.4594441, 139.6323669],
+  "d2-minatomirai": [35.4549540, 139.6313850],
   "d2-night": [35.4524046, 139.6429182],
   "d3-gcans-tour": [35.9910983, 139.7805654],
   "d3-railway": [35.9217287, 139.6178610],
   "d3-teamlab": [35.6493800, 139.7897280],
-  "d4-fuji-tour": [35.3628384, 138.7307677],
   "d4-ameyoko": [35.7100592, 139.7745428]
 };
 
@@ -426,6 +447,7 @@ const nodes = {
   mapSheetDay: document.querySelector("#mapSheetDay"),
   mapSheetTitle: document.querySelector("#mapSheetTitle"),
   mapSheetMeta: document.querySelector("#mapSheetMeta"),
+  mapSheetAddress: document.querySelector("#mapSheetAddress"),
   mapSheetItems: document.querySelector("#mapSheetItems"),
   mapSheetOpenLink: document.querySelector("#mapSheetOpenLink"),
   mapWalkLink: document.querySelector("#mapWalkLink"),
@@ -506,7 +528,7 @@ function getStopById(stopId) {
 
 function getMappableStops() {
   return TRIP_DAYS.flatMap((day) => day.stops
-    .filter((stop) => stop.map && PINNED_STOP_IDS.has(stop.id) && MAP_COORDINATES[stop.id])
+    .filter((stop) => stop.map && stop.address && PINNED_STOP_IDS.has(stop.id) && MAP_COORDINATES[stop.id])
     .map((stop) => ({ ...stop, dayId: day.id, dayLabel: day.label, dayTitle: day.title })));
 }
 
@@ -954,6 +976,7 @@ function openSearchPlaceSheet(place) {
   nodes.mapSheetDay.textContent = "검색한 장소";
   nodes.mapSheetTitle.textContent = place.displayName || "장소";
   nodes.mapSheetMeta.textContent = place.formattedAddress || "주소 정보 없음";
+  nodes.mapSheetAddress.textContent = "";
   nodes.mapSheetItems.innerHTML = "";
   setMapSheetLinks(position, place.googleMapsURI || fallbackUrl);
   nodes.mapBottomSheet.hidden = false;
@@ -1055,6 +1078,7 @@ function openMapSheet(stop) {
   nodes.mapSheetDay.textContent = `${stop.dayLabel} · ${stop.dayTitle}`;
   nodes.mapSheetTitle.textContent = stop.title;
   nodes.mapSheetMeta.textContent = `${stop.time} · ${stop.area} · ${stop.type}`;
+  nodes.mapSheetAddress.textContent = `${stop.mapPlace || stop.title} · ${stop.address}`;
   nodes.mapSheetItems.innerHTML = (stop.items || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("");
   const [lat, lng] = MAP_COORDINATES[stop.id];
   setMapSheetLinks({ lat, lng }, stop.map);
