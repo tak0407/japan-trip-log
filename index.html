@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="2026 일본 여행 일정 체크와 여행 기록을 관리하는 공유 웹앱">
+    <meta name="description" content="2026 일본 여행 일정과 장소 지도를 확인하는 공유 웹앱">
     <meta name="theme-color" content="#286f9e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -49,7 +49,6 @@
                   <span class="status-pill" id="nowStatus">대기</span>
                   <div class="now-actions" id="nowActions">
                     <button class="button primary" type="button" data-now-action="map">지도</button>
-                    <button class="button ghost" type="button" data-now-action="log">기록</button>
                     <button class="button ghost" type="button" data-now-action="schedule">일정</button>
                   </div>
                 </div>
@@ -72,12 +71,12 @@
               <strong id="checkedMetric">0 / 0</strong>
               <span class="metric-sub">방문, 이동, 식사 포함</span>
             </article>
-            <article class="metric-card">
+            <article class="metric-card" hidden>
               <span class="metric-label">기록</span>
               <strong id="journalMetric">0개</strong>
               <span class="metric-sub">방문 메모와 여행 노트</span>
             </article>
-            <article class="metric-card">
+            <article class="metric-card" hidden>
               <span class="metric-label">지출</span>
               <strong id="expenseMetric">¥0</strong>
               <span class="metric-sub">현지 입력 기준</span>
@@ -139,10 +138,22 @@
 
         <section class="tab-panel" id="mapPanel" data-view-panel="map" hidden>
           <article class="panel map-panel">
-            <div class="map-search" id="mapSearch" aria-label="장소 검색"></div>
+            <div class="map-search-panel" id="mapSearchPanel" hidden>
+              <div class="map-search" id="mapSearch" aria-label="장소 검색"></div>
+              <button class="map-search-close" id="mapSearchClose" type="button" aria-label="검색 닫기">×</button>
+            </div>
             <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
             <div class="map-timeline" id="mapTimeline" aria-label="선택한 날짜의 방문 장소"></div>
             <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
+            <div class="map-floating-controls" aria-label="지도 기능">
+              <button class="map-fab" id="mapSearchToggle" type="button" aria-label="장소 검색" aria-expanded="false">
+                <span class="map-fab-search-icon" aria-hidden="true"></span>
+              </button>
+              <button class="map-fab" id="mapLocateButton" type="button" aria-label="내 위치로 이동">
+                <span class="map-fab-location-icon" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="map-control-status" id="mapControlStatus" role="status" hidden></p>
             <aside class="map-bottom-sheet" id="mapBottomSheet" hidden aria-live="polite">
               <button class="map-sheet-close" id="mapSheetClose" type="button" aria-label="장소 상세정보 닫기">×</button>
               <p class="panel-kicker" id="mapSheetDay">장소</p>
@@ -290,14 +301,6 @@
       <button class="bottom-nav-item" type="button" data-view="map" aria-controls="mapPanel">
         <span class="nav-icon nav-icon-map" aria-hidden="true"></span>
         <span>지도</span>
-      </button>
-      <button class="bottom-nav-item" type="button" data-view="journal" aria-controls="journalPanel">
-        <span class="nav-icon nav-icon-journal" aria-hidden="true"></span>
-        <span>기록</span>
-      </button>
-      <button class="bottom-nav-item" type="button" data-view="expense" aria-controls="expensePanel">
-        <span class="nav-icon nav-icon-expense" aria-hidden="true"></span>
-        <span>지출</span>
       </button>
       <button class="bottom-nav-item" type="button" data-view="prep" aria-controls="prepPanel">
         <span class="nav-icon nav-icon-prep" aria-hidden="true"></span>

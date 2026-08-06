@@ -341,7 +341,7 @@ const DEFAULT_PACKING = [
 
 const STORAGE_KEY = "japan-trip-log:v1";
 const APP_VERSION = 3;
-const VIEWS = ["now", "schedule", "map", "journal", "expense", "prep"];
+const VIEWS = ["now", "schedule", "map", "prep"];
 const CALENDAR_START_MINUTES = 7 * 60;
 const CALENDAR_END_MINUTES = 23 * 60;
 const MAP_CENTER = [35.6814, 139.7658];
@@ -620,6 +620,9 @@ let googleMapsPromise = null;
 let placeSearchElement = null;
 let searchMarker = null;
 let selectedSearchPlace = null;
+let locationMarker = null;
+let oneFingerZoomInitialized = false;
+let mapStatusTimer = null;
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
@@ -646,6 +649,11 @@ const nodes = {
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
   mapSearch: document.querySelector("#mapSearch"),
+  mapSearchPanel: document.querySelector("#mapSearchPanel"),
+  mapSearchToggle: document.querySelector("#mapSearchToggle"),
+  mapSearchClose: document.querySelector("#mapSearchClose"),
+  mapLocateButton: document.querySelector("#mapLocateButton"),
+  mapControlStatus: document.querySelector("#mapControlStatus"),
   mapDayFilters: document.querySelector("#mapDayFilters"),
   mapTimeline: document.querySelector("#mapTimeline"),
   mapCanvas: document.querySelector("#mapCanvas"),
@@ -1115,7 +1123,6 @@ function renderStops() {
     const actions = `
       <div class="stop-actions">
         ${map}
-        <button class="small-action" type="button" data-log-stop-id="${stop.id}">기록</button>
       </div>
     `;
 
@@ -1204,7 +1211,125 @@ function showSearchPlace(place) {
   searchMarker.addListener("click", () => openSearchPlaceSheet(place));
   tripMap.panTo(position);
   tripMap.setZoom(16);
+  closeMapSearch();
   openSearchPlaceSheet(place);
+}
+
+function openMapSearch() {
+  nodes.mapSearchPanel.hidden = false;
+  nodes.mapSearchToggle.setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => placeSearchElement?.focus());
+}
+
+function closeMapSearch() {
+  nodes.mapSearchPanel.hidden = true;
+  nodes.mapSearchToggle.setAttribute("aria-expanded", "false");
+}
+
+function showMapControlStatus(message, duration = 2600) {
+  clearTimeout(mapStatusTimer);
+  nodes.mapControlStatus.textContent = message;
+  nodes.mapControlStatus.hidden = false;
+  mapStatusTimer = setTimeout(() => {
+    nodes.mapControlStatus.hidden = true;
+  }, duration);
+}
+
+function showCurrentLocation() {
+  if (!navigator.geolocation || !tripMap) {
+    showMapControlStatus("이 기기에서는 현재 위치를 사용할 수 없어요.", 4000);
+    return;
+  }
+
+  nodes.mapLocateButton.disabled = true;
+  showMapControlStatus("현재 위치를 확인하고 있어요.", 10000);
+  navigator.geolocation.getCurrentPosition((position) => {
+    const current = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude
+    };
+    if (locationMarker) locationMarker.map = null;
+    const pin = new google.maps.marker.PinElement({
+      glyph: "●",
+      background: "#2f7d68",
+      borderColor: "#ffffff",
+      glyphColor: "#ffffff",
+      scale: 1.05
+    });
+    locationMarker = new google.maps.marker.AdvancedMarkerElement({
+      map: tripMap,
+      position: current,
+      title: "내 위치",
+      content: pin.element,
+      zIndex: 100
+    });
+    tripMap.panTo(current);
+    tripMap.setZoom(17);
+    showMapControlStatus("현재 위치로 이동했어요.");
+    nodes.mapLocateButton.disabled = false;
+  }, () => {
+    showMapControlStatus("위치 권한을 허용한 뒤 다시 눌러주세요.", 4500);
+    nodes.mapLocateButton.disabled = false;
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 60000
+  });
+}
+
+function initializeOneFingerMapZoom() {
+  if (oneFingerZoomInitialized) return;
+  oneFingerZoomInitialized = true;
+  let lastTap = null;
+  let zoomGesture = null;
+
+  nodes.mapCanvas.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) {
+      lastTap = null;
+      zoomGesture = null;
+      return;
+    }
+    const touch = event.touches[0];
+    const now = performance.now();
+    const isSecondTap = lastTap
+      && now - lastTap.time < 360
+      && Math.hypot(touch.clientX - lastTap.x, touch.clientY - lastTap.y) < 44;
+
+    if (isSecondTap) {
+      zoomGesture = {
+        startY: touch.clientY,
+        startZoom: tripMap?.getZoom() || MAP_ZOOM,
+        moved: false
+      };
+      lastTap = null;
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    lastTap = { time: now, x: touch.clientX, y: touch.clientY };
+  }, { passive: false, capture: true });
+
+  nodes.mapCanvas.addEventListener("touchmove", (event) => {
+    if (!zoomGesture || event.touches.length !== 1 || !tripMap) return;
+    const deltaY = event.touches[0].clientY - zoomGesture.startY;
+    zoomGesture.moved = zoomGesture.moved || Math.abs(deltaY) > 4;
+    tripMap.setZoom(Math.max(3, Math.min(21, zoomGesture.startZoom + (deltaY / 80))));
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  }, { passive: false, capture: true });
+
+  const finishZoomGesture = (event) => {
+    if (!zoomGesture || !tripMap) return;
+    if (!zoomGesture.moved) {
+      tripMap.setZoom(Math.min(21, zoomGesture.startZoom + 1));
+    }
+    zoomGesture = null;
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  };
+  nodes.mapCanvas.addEventListener("touchend", finishZoomGesture, { passive: false, capture: true });
+  nodes.mapCanvas.addEventListener("touchcancel", finishZoomGesture, { passive: false, capture: true });
 }
 
 function openSearchPlaceSheet(place) {
@@ -1320,10 +1445,11 @@ function renderMap() {
       zoom: MAP_ZOOM,
       mapId: "DEMO_MAP_ID",
       disableDefaultUI: true,
-      disableDoubleClickZoom: false,
+      disableDoubleClickZoom: true,
       clickableIcons: false,
       gestureHandling: "greedy"
     });
+    initializeOneFingerMapZoom();
   }
   if (!tripMap) return;
   initializePlaceSearch().catch((error) => console.error(error));
@@ -1779,6 +1905,14 @@ nodes.mapDayFilters.addEventListener("click", (event) => {
   persist();
   render();
 });
+
+nodes.mapSearchToggle.addEventListener("click", () => {
+  if (nodes.mapSearchPanel.hidden) openMapSearch();
+  else closeMapSearch();
+});
+
+nodes.mapSearchClose.addEventListener("click", closeMapSearch);
+nodes.mapLocateButton.addEventListener("click", showCurrentLocation);
 
 nodes.mapTimeline.addEventListener("click", (event) => {
   const accommodationButton = event.target.closest("[data-map-accommodation]");
