@@ -35,6 +35,9 @@ const TRIP_DAYS = [
         title: "인천 → 나리타 (WE 501)",
         area: "ICN → NRT",
         type: "항공",
+        mapPlace: "나리타 국제공항",
+        address: "〒282-0004 지바현 나리타시 후루고메 1-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Narita%20International%20Airport",
         note: "예약 확정 · 비행시간 2시간 10분"
       },
       {
@@ -280,6 +283,9 @@ const TRIP_DAYS = [
         title: "나리타 → 인천 (WE 502)",
         area: "NRT → ICN",
         type: "항공",
+        mapPlace: "나리타 국제공항",
+        address: "〒282-0004 지바현 나리타시 후루고메 1-1",
+        map: "https://www.google.com/maps/search/?api=1&query=Narita%20International%20Airport",
         note: "예약 확정 · 비행시간 2시간 45분"
       }
     ]
@@ -317,12 +323,13 @@ const ACCOMMODATION = {
   map: "https://www.google.com/maps/search/?api=1&query=Hotel%20Marutani%206-7-6%20Ueno%20Taito%20Tokyo"
 };
 const PINNED_STOP_IDS = new Set([
-  "d1-asakusa", "d1-teamlab", "d1-odaiba",
+  "d1-flight-in", "d1-asakusa", "d1-teamlab", "d1-odaiba",
   "d2-verny", "d2-mikasa", "d2-cruise", "d2-nissan", "d2-cupnoodles", "d2-redbrick", "d2-osanbashi", "d2-cosmo",
   "d3-gcans-tour", "d3-railway", "d3-shibuya",
-  "d4-skytree"
+  "d4-skytree", "d5-flight-out"
 ]);
 const MAP_COORDINATES = {
+  "d1-flight-in": [35.7720, 140.3929],
   "d1-asakusa": [35.7147651, 139.7966553],
   "d1-teamlab": [35.6493800, 139.7897280],
   "d1-odaiba": [35.6296290, 139.7755280],
@@ -337,10 +344,23 @@ const MAP_COORDINATES = {
   "d3-gcans-tour": [35.9910983, 139.7805654],
   "d3-railway": [35.9217287, 139.6178610],
   "d3-shibuya": [35.6590597, 139.7006279],
-  "d4-skytree": [35.7100627, 139.8107004]
+  "d4-skytree": [35.7100627, 139.8107004],
+  "d5-flight-out": [35.7720, 140.3929]
 };
 
 const PLACE_DETAILS = {
+  "d1-flight-in": {
+    symbol: "着",
+    summary: "WE 501편으로 인천에서 출발해 여행 첫날 정오에 나리타 국제공항에 도착하는 항공 일정.",
+    hours: "09:50 출발 · 12:00 도착",
+    fee: "항공권 예약 확정",
+    transit: "인천 ICN → 나리타 NRT",
+    duration: "2시간 10분",
+    reservation: "WE 501 예약 확정",
+    officialUrl: "https://www.narita-airport.jp/ko/",
+    highlights: ["12:00 나리타 도착", "입국심사와 수하물 수령", "도쿄 시내 이동"],
+    tips: ["이용 터미널은 항공권 예약 상세에서 다시 확인", "14:20 아사쿠사 일정까지 입국·이동 시간을 고려"]
+  },
   "d1-asakusa": {
     symbol: "寺",
     summary: "카미나리몬에서 나카미세 거리를 지나 센소지 본당까지 이어지는 아사쿠사의 대표 산책 동선.",
@@ -532,6 +552,18 @@ const PLACE_DETAILS = {
     officialUrl: "https://www.tokyo-skytree.jp/",
     highlights: ["전망데크", "도쿄 야경", "스카이트리 타운"],
     tips: ["후지산 투어 해산과 쇼핑 후 이동 시간을 고려", "마지막 입장 시간을 당일 확인"]
+  },
+  "d5-flight-out": {
+    symbol: "発",
+    summary: "WE 502편으로 나리타 국제공항에서 출발해 인천으로 돌아오는 귀국 항공 일정.",
+    hours: "13:30 출발 · 16:15 도착",
+    fee: "항공권 예약 확정",
+    transit: "나리타 NRT → 인천 ICN",
+    duration: "2시간 45분",
+    reservation: "WE 502 예약 확정",
+    officialUrl: "https://www.narita-airport.jp/ko/",
+    highlights: ["13:30 나리타 출발", "출국 수속", "16:15 인천 도착"],
+    tips: ["이용 터미널은 항공권 예약 상세에서 다시 확인", "우에노에서 공항까지 이동시간과 국제선 수속시간을 충분히 확보"]
   }
 };
 
