@@ -26,9 +26,17 @@ const TRIP_DAYS = [
   {
     id: "2026-08-11",
     label: "8.11 Tue",
-    title: "아사쿠사 + TeamLab + 오다이바",
+    title: "입국 + 아사쿠사 + TeamLab + 오다이바",
     dateText: "2026년 8월 11일 화요일",
     stops: [
+      {
+        id: "d1-flight-in",
+        time: "09:50-12:00",
+        title: "인천 → 나리타 (WE 501)",
+        area: "ICN → NRT",
+        type: "항공",
+        note: "예약 확정 · 비행시간 2시간 10분"
+      },
       {
         id: "d1-asakusa",
         time: "14:20",
@@ -241,7 +249,7 @@ const TRIP_DAYS = [
   {
     id: "2026-08-15",
     label: "8.15 Sat",
-    title: "귀국 준비",
+    title: "귀국 · WE 502",
     dateText: "2026년 8월 15일 토요일",
     stops: [
       {
@@ -260,10 +268,19 @@ const TRIP_DAYS = [
       },
       {
         id: "d5-airport",
-        time: "공항 이동 전",
-        title: "공항 이동 준비",
-        area: "도쿄",
-        type: "이동"
+        time: "출발 전",
+        title: "나리타 공항 이동 · 출국 수속",
+        area: "우에노 → 나리타공항",
+        type: "이동",
+        note: "국제선 탑승에 맞춰 여유 있게 공항 도착"
+      },
+      {
+        id: "d5-flight-out",
+        time: "13:30-16:15",
+        title: "나리타 → 인천 (WE 502)",
+        area: "NRT → ICN",
+        type: "항공",
+        note: "예약 확정 · 비행시간 2시간 45분"
       }
     ]
   }
