@@ -1282,6 +1282,7 @@ function initializeOneFingerMapZoom() {
   oneFingerZoomInitialized = true;
   let lastTap = null;
   let zoomGesture = null;
+  let zoomFrame = 0;
 
   nodes.mapCanvas.addEventListener("touchstart", (event) => {
     if (event.touches.length !== 1) {
@@ -1299,6 +1300,7 @@ function initializeOneFingerMapZoom() {
       zoomGesture = {
         startY: touch.clientY,
         startZoom: tripMap?.getZoom() || MAP_ZOOM,
+        targetZoom: tripMap?.getZoom() || MAP_ZOOM,
         moved: false
       };
       lastTap = null;
@@ -1314,15 +1316,29 @@ function initializeOneFingerMapZoom() {
     if (!zoomGesture || event.touches.length !== 1 || !tripMap) return;
     const deltaY = event.touches[0].clientY - zoomGesture.startY;
     zoomGesture.moved = zoomGesture.moved || Math.abs(deltaY) > 4;
-    tripMap.setZoom(Math.max(3, Math.min(21, zoomGesture.startZoom + (deltaY / 80))));
+    zoomGesture.targetZoom = Math.max(3, Math.min(21, zoomGesture.startZoom + (deltaY / 80)));
+    if (!zoomFrame) {
+      zoomFrame = requestAnimationFrame(() => {
+        zoomFrame = 0;
+        if (zoomGesture && tripMap) {
+          tripMap.moveCamera({ zoom: zoomGesture.targetZoom });
+        }
+      });
+    }
     if (event.cancelable) event.preventDefault();
     event.stopPropagation();
   }, { passive: false, capture: true });
 
   const finishZoomGesture = (event) => {
     if (!zoomGesture || !tripMap) return;
+    if (zoomFrame) {
+      cancelAnimationFrame(zoomFrame);
+      zoomFrame = 0;
+    }
     if (!zoomGesture.moved) {
-      tripMap.setZoom(Math.min(21, zoomGesture.startZoom + 1));
+      tripMap.moveCamera({ zoom: Math.min(21, zoomGesture.startZoom + 1) });
+    } else {
+      tripMap.moveCamera({ zoom: zoomGesture.targetZoom });
     }
     zoomGesture = null;
     if (event.cancelable) event.preventDefault();
@@ -1447,6 +1463,7 @@ function renderMap() {
       disableDefaultUI: true,
       disableDoubleClickZoom: true,
       clickableIcons: false,
+      isFractionalZoomEnabled: true,
       gestureHandling: "greedy"
     });
     initializeOneFingerMapZoom();
