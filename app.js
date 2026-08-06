@@ -648,6 +648,7 @@ const nodes = {
   journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
+  mapPanel: document.querySelector("#mapPanel .map-panel"),
   mapSearch: document.querySelector("#mapSearch"),
   mapSearchPanel: document.querySelector("#mapSearchPanel"),
   mapSearchToggle: document.querySelector("#mapSearchToggle"),
@@ -1216,14 +1217,27 @@ function showSearchPlace(place) {
 }
 
 function openMapSearch() {
+  syncMapSearchViewport();
+  nodes.mapPanel.classList.add("is-searching");
   nodes.mapSearchPanel.hidden = false;
   nodes.mapSearchToggle.setAttribute("aria-expanded", "true");
-  requestAnimationFrame(() => placeSearchElement?.focus());
+  requestAnimationFrame(() => {
+    syncMapSearchViewport();
+    requestAnimationFrame(() => placeSearchElement?.focus({ preventScroll: true }));
+  });
 }
 
 function closeMapSearch() {
+  document.activeElement?.blur();
   nodes.mapSearchPanel.hidden = true;
+  nodes.mapPanel.classList.remove("is-searching");
+  nodes.mapPanel.style.removeProperty("--map-search-viewport-offset");
   nodes.mapSearchToggle.setAttribute("aria-expanded", "false");
+}
+
+function syncMapSearchViewport() {
+  const viewportOffset = Math.max(0, window.visualViewport?.offsetTop || 0);
+  nodes.mapPanel.style.setProperty("--map-search-viewport-offset", `${viewportOffset}px`);
 }
 
 function showMapControlStatus(message, duration = 2600) {
@@ -1930,6 +1944,15 @@ nodes.mapSearchToggle.addEventListener("click", () => {
 
 nodes.mapSearchClose.addEventListener("click", closeMapSearch);
 nodes.mapLocateButton.addEventListener("click", showCurrentLocation);
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    if (!nodes.mapSearchPanel.hidden) syncMapSearchViewport();
+  });
+  window.visualViewport.addEventListener("scroll", () => {
+    if (!nodes.mapSearchPanel.hidden) syncMapSearchViewport();
+  });
+}
 
 nodes.mapTimeline.addEventListener("click", (event) => {
   const accommodationButton = event.target.closest("[data-map-accommodation]");

@@ -1044,13 +1044,14 @@ h2 {
 
 .map-search-panel {
   position: absolute;
-  right: max(14px, env(safe-area-inset-right));
-  bottom: calc(198px + env(safe-area-inset-bottom));
-  z-index: 19;
+  top: calc(max(12px, env(safe-area-inset-top)) + var(--map-search-viewport-offset, 0px));
+  right: max(12px, env(safe-area-inset-right));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 30;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 38px;
   gap: 8px;
-  width: min(420px, calc(100% - 28px));
+  width: auto;
   padding: 8px;
   border: 1px solid rgba(203, 215, 211, .9);
   border-radius: 18px;
@@ -1061,6 +1062,13 @@ h2 {
 
 .map-search-panel[hidden] {
   display: none;
+}
+
+.map-panel.is-searching .map-day-filters,
+.map-panel.is-searching .map-timeline,
+.map-panel.is-searching .map-floating-controls {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .map-search {
