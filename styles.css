@@ -866,6 +866,9 @@ h2 {
 }
 
 .small-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 30px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -874,6 +877,31 @@ h2 {
   color: var(--green);
   font-size: 0.8rem;
   font-weight: 900;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.offline-banner {
+  position: fixed;
+  right: 12px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 45;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(29, 36, 40, .92);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(29, 36, 40, .22);
+  font-size: .8rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.offline-banner[hidden] {
+  display: none;
 }
 
 .side-stack {
@@ -1587,6 +1615,82 @@ h2 {
   color: var(--muted);
   font-size: .82rem;
   font-weight: 800;
+}
+
+.map-offline-panel {
+  position: absolute;
+  top: calc(max(14px, env(safe-area-inset-top)) + 132px);
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 18;
+  width: min(560px, calc(100% - 24px));
+  margin: 0 auto;
+  padding: 18px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 18px 48px rgba(29, 36, 40, .22);
+  overscroll-behavior: contain;
+}
+
+.map-offline-panel[hidden] {
+  display: none;
+}
+
+.map-offline-panel > p:not(.panel-kicker) {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.map-offline-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.map-offline-place {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fbfa;
+}
+
+.map-offline-place > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.map-offline-place strong,
+.map-offline-place small {
+  display: block;
+}
+
+.map-offline-place small {
+  margin-top: 3px;
+  color: var(--blue);
+  font-size: .74rem;
+  font-weight: 800;
+}
+
+.map-offline-place p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.4;
 }
 
 .map-bottom-sheet {

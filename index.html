@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <div class="offline-banner" id="offlineBanner" role="status" hidden>
+      오프라인 상태예요. 저장된 일정과 주소는 계속 확인할 수 있어요.
+    </div>
     <div class="app-shell">
       <header class="topbar">
         <div class="brand-block">
@@ -148,6 +151,12 @@
             <div class="map-day-filters" id="mapDayFilters" aria-label="여행 날짜 선택"></div>
             <div class="map-timeline" id="mapTimeline" aria-label="선택한 날짜의 방문 장소"></div>
             <div class="map-canvas" id="mapCanvas" role="application" aria-label="여행 장소 지도"></div>
+            <section class="map-offline-panel" id="mapOfflinePanel" aria-labelledby="mapOfflineTitle" hidden>
+              <p class="panel-kicker">오프라인 지도 대신</p>
+              <h2 id="mapOfflineTitle">저장된 장소와 주소</h2>
+              <p>인터넷이 연결되면 지도가 자동으로 다시 열려요.</p>
+              <div class="map-offline-list" id="mapOfflineList"></div>
+            </section>
             <div class="map-floating-controls" aria-label="지도 기능">
               <button class="map-fab" id="mapSearchToggle" type="button" aria-label="장소 검색" aria-expanded="false">
                 <span class="map-fab-search-icon" aria-hidden="true"></span>

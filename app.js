@@ -655,6 +655,7 @@ const nodes = {
   journalDay: document.querySelector("#journalDay"),
   journalList: document.querySelector("#journalList"),
   journalCount: document.querySelector("#journalCount"),
+  offlineBanner: document.querySelector("#offlineBanner"),
   mapPanel: document.querySelector("#mapPanel .map-panel"),
   mapSearch: document.querySelector("#mapSearch"),
   mapSearchPanel: document.querySelector("#mapSearchPanel"),
@@ -665,6 +666,8 @@ const nodes = {
   mapDayFilters: document.querySelector("#mapDayFilters"),
   mapTimeline: document.querySelector("#mapTimeline"),
   mapCanvas: document.querySelector("#mapCanvas"),
+  mapOfflinePanel: document.querySelector("#mapOfflinePanel"),
+  mapOfflineList: document.querySelector("#mapOfflineList"),
   mapBottomSheet: document.querySelector("#mapBottomSheet"),
   mapSheetClose: document.querySelector("#mapSheetClose"),
   mapSheetDay: document.querySelector("#mapSheetDay"),
@@ -919,9 +922,10 @@ function renderActiveView() {
     }
   });
 
-  if (activeView === "map") {
+  if (activeView === "map" && navigator.onLine) {
     loadGoogleMaps().then(renderMap).catch((error) => console.error(error));
   }
+  updateConnectivityStatus();
 }
 
 function renderMetrics() {
@@ -1100,12 +1104,19 @@ function renderStops() {
       ? `<ul class="stop-items">${stop.items.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>`
       : "";
     const note = stop.note ? `<p class="stop-note">${escapeHTML(stop.note)}</p>` : "";
-    const map = stop.map
-      ? `<button class="small-action map-action" type="button" data-map-stop-id="${stop.id}">지도</button>`
+    const isMappable = Boolean(stop.map && stop.address && MAP_COORDINATES[stop.id]);
+    const detail = PLACE_DETAILS[stop.id]
+      ? `<button class="small-action" type="button" data-detail-stop-id="${stop.id}">상세</button>`
+      : "";
+    const map = isMappable
+      ? `<button class="small-action map-action" type="button" data-map-stop-id="${stop.id}">앱 지도</button>`
+      : "";
+    const googleMaps = stop.map
+      ? `<a class="small-action" href="${escapeHTML(stop.map)}" target="_blank" rel="noreferrer">Google Maps</a>`
       : "";
     const actions = `
       <div class="stop-actions">
-        ${map}
+        ${detail}${map}${googleMaps}
       </div>
     `;
 
@@ -1373,7 +1384,7 @@ function renderPlaceDetailList(node, items) {
   node.innerHTML = items.map((item) => `<li>${escapeHTML(item)}</li>`).join("");
 }
 
-function openPlaceDetail(stop) {
+function openPlaceDetail(stop, returnView = "map") {
   const detail = PLACE_DETAILS[stop.id];
   if (!detail) return;
 
@@ -1416,6 +1427,7 @@ function openPlaceDetail(stop) {
   nodes.placeDetailOfficialLink.href = detail.officialUrl;
   nodes.placeDetailMapLink.href = stop.map;
   nodes.mapBottomSheet.hidden = true;
+  nodes.placeDetailView.dataset.returnView = returnView;
   nodes.placeDetailView.hidden = false;
   nodes.placeDetailScroll.scrollTop = 0;
   nodes.placeDetailClose.focus();
@@ -1423,12 +1435,20 @@ function openPlaceDetail(stop) {
 
 function closePlaceDetail() {
   nodes.placeDetailView.hidden = true;
+  if (nodes.placeDetailView.dataset.returnView === "schedule") {
+    activeView = "schedule";
+    nodes.placeDetailView.dataset.returnView = "map";
+    persist();
+    render();
+    return;
+  }
   nodes.mapSheetDetailButton.focus();
 }
 
 function renderMap() {
   const mappableStops = getMappableStops();
   const visibleStops = mappableStops.filter((stop) => stop.dayId === mapDayFilter);
+  renderOfflineMapList(visibleStops);
 
   nodes.mapDayFilters.innerHTML = TRIP_DAYS.map((day) => (
     `<button class="map-day-filter" type="button" data-map-day-filter="${day.id}" aria-pressed="${day.id === mapDayFilter ? "true" : "false"}">${escapeHTML(day.label.split(" ")[0])}</button>`
@@ -1542,6 +1562,40 @@ function renderMap() {
     tripMap.setCenter({ lat: MAP_CENTER[0], lng: MAP_CENTER[1] });
     tripMap.setZoom(MAP_ZOOM);
   }
+}
+
+function renderOfflineMapList(visibleStops = getMappableStops().filter((stop) => stop.dayId === mapDayFilter)) {
+  const places = [
+    {
+      title: ACCOMMODATION.title,
+      meta: "숙소 · 전 일정",
+      address: ACCOMMODATION.address
+    },
+    ...visibleStops.map((stop) => ({
+      title: stop.title,
+      meta: `${stop.time} · ${stop.area}`,
+      address: `${stop.mapPlace || stop.title} · ${stop.address}`
+    }))
+  ];
+  nodes.mapOfflineList.innerHTML = places.map((place, index) => `
+    <article class="map-offline-place">
+      <span>${index ? index : "H"}</span>
+      <div>
+        <strong>${escapeHTML(place.title)}</strong>
+        <small>${escapeHTML(place.meta)}</small>
+        <p>${escapeHTML(place.address)}</p>
+      </div>
+    </article>
+  `).join("");
+}
+
+function updateConnectivityStatus() {
+  const isOffline = !navigator.onLine;
+  nodes.offlineBanner.hidden = !isOffline || activeView === "map";
+  nodes.mapOfflinePanel.hidden = !isOffline || activeView !== "map";
+  nodes.mapSearchToggle.disabled = isOffline;
+  nodes.mapLocateButton.disabled = isOffline;
+  if (isOffline && !nodes.mapSearchPanel.hidden) closeMapSearch();
 }
 
 function openMapSheet(stop, subPlace = null) {
@@ -1860,9 +1914,25 @@ nodes.stopList.addEventListener("change", (event) => {
 });
 
 nodes.stopList.addEventListener("click", (event) => {
+  const detailButton = event.target.closest("[data-detail-stop-id]");
+  if (detailButton) {
+    const stop = getStopById(detailButton.dataset.detailStopId);
+    if (!stop) return;
+    selectedMapStopId = stop.id;
+    mapDayFilter = stop.dayId;
+    activeView = "map";
+    persist();
+    render();
+    openPlaceDetail(stop, "schedule");
+    return;
+  }
+
   const mapButton = event.target.closest("[data-map-stop-id]");
   if (mapButton) {
-    selectedMapStopId = mapButton.dataset.mapStopId;
+    const stop = getStopById(mapButton.dataset.mapStopId);
+    if (!stop) return;
+    selectedMapStopId = stop.id;
+    mapDayFilter = stop.dayId;
     activeView = "map";
     persist();
     render();
@@ -2110,5 +2180,27 @@ nodes.resetButton.addEventListener("click", () => {
 });
 
 window.addEventListener("resize", drawRouteCanvas);
+
+window.addEventListener("online", () => {
+  updateConnectivityStatus();
+  if (activeView === "map") {
+    loadGoogleMaps().then(renderMap).catch((error) => console.error(error));
+  }
+});
+
+window.addEventListener("offline", updateConnectivityStatus);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  updateConnectivityStatus();
+  if (activeView === "now") {
+    selectedNowStopId = "";
+    renderNow();
+  }
+});
+
+setInterval(() => {
+  if (!document.hidden && activeView === "now") renderNow();
+}, 30000);
 
 render();
