@@ -1,3 +1,34 @@
+const ASAKUSA_SUB_PLACES = [
+  {
+    id: "d1-asakusa-kaminarimon",
+    title: "카미나리몬",
+    address: "〒111-0032 도쿄도 다이토구 아사쿠사 2-3-1",
+    coordinates: [35.711144, 139.796365],
+    map: "https://www.google.com/maps/search/?api=1&query=Kaminarimon%20Gate%202-3-1%20Asakusa%20Tokyo"
+  },
+  {
+    id: "d1-asakusa-nakamise",
+    title: "나카미세 거리",
+    address: "〒111-0032 도쿄도 다이토구 아사쿠사 1-36-3",
+    coordinates: [35.712443, 139.796482],
+    map: "https://www.google.com/maps/search/?api=1&query=Nakamise%20Shopping%20Street%201-36-3%20Asakusa%20Tokyo"
+  },
+  {
+    id: "d1-asakusa-sensoji",
+    title: "센소지",
+    address: "〒111-0032 도쿄도 다이토구 아사쿠사 2-3-1",
+    coordinates: [35.7147651, 139.7966553],
+    map: "https://www.google.com/maps/search/?api=1&query=Senso-ji%202-3-1%20Asakusa%20Taito%20Tokyo"
+  },
+  {
+    id: "d1-asakusa-riverwalk",
+    title: "주변 산책 · 스미다강",
+    address: "도쿄도 다이토구 하나카와도 1초메 스미다 공원 일대",
+    coordinates: [35.713700, 139.802800],
+    map: "https://www.google.com/maps/search/?api=1&query=Sumida%20Park%20Asakusa%20Tokyo"
+  }
+];
+
 const SHIBUYA_SUB_PLACES = [
   {
     id: "d3-shibuya-hachiko",
@@ -49,7 +80,8 @@ const TRIP_DAYS = [
         mapPlace: "센소지",
         address: "〒111-0032 도쿄도 다이토구 아사쿠사 2-3-1",
         map: "https://www.google.com/maps/search/?api=1&query=Senso-ji%202-3-1%20Asakusa%20Taito%20Tokyo",
-        items: ["카미나리몬", "나카미세 거리", "센소지", "주변 산책"]
+        items: ["카미나리몬", "나카미세 거리", "센소지", "주변 산책"],
+        subPlaces: ASAKUSA_SUB_PLACES
       },
       {
         id: "d1-dinner",
