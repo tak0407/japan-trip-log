@@ -1288,7 +1288,7 @@ function renderMap() {
       zoom: MAP_ZOOM,
       mapId: "DEMO_MAP_ID",
       disableDefaultUI: true,
-      disableDoubleClickZoom: true,
+      disableDoubleClickZoom: false,
       clickableIcons: false,
       gestureHandling: "greedy"
     });
