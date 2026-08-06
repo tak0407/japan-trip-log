@@ -325,16 +325,19 @@ const TRIP_DAYS = [
 ];
 
 const DEFAULT_PACKING = [
-  { id: "passport", category: "서류", label: "여권" },
-  { id: "reservation", category: "서류", label: "숙소, 투어 예약 확인" },
+  { id: "passport", category: "출발 전 확인", label: "여권 유효기간 확인" },
+  { id: "reservation", category: "출발 전 확인", label: "항공, 숙소, 투어 예약 화면 저장" },
+  { id: "insurance", category: "출발 전 확인", label: "여행자보험 및 비상 연락처" },
+  { id: "esim", category: "출발 전 확인", label: "eSIM 개통 준비" },
   { id: "cash", category: "서류", label: "엔화 현금" },
   { id: "card", category: "서류", label: "해외 결제 카드" },
-  { id: "esim", category: "기기", label: "eSIM 또는 유심" },
   { id: "battery", category: "기기", label: "보조배터리" },
   { id: "charger", category: "기기", label: "충전기, 케이블" },
   { id: "adapter", category: "기기", label: "돼지코 어댑터" },
   { id: "shoes", category: "의류", label: "많이 걸을 신발" },
   { id: "rain", category: "의류", label: "우산 또는 우비" },
+  { id: "sun", category: "의류", label: "선크림, 모자" },
+  { id: "cooling", category: "기타", label: "휴대용 선풍기 또는 쿨링용품" },
   { id: "medicine", category: "기타", label: "상비약" },
   { id: "bag", category: "기타", label: "접이식 쇼핑백" }
 ];
@@ -635,9 +638,13 @@ const nodes = {
   nowKicker: document.querySelector("#nowKicker"),
   nowTitle: document.querySelector("#nowTitle"),
   nowMeta: document.querySelector("#nowMeta"),
+  nowCountdown: document.querySelector("#nowCountdown"),
   nowStatus: document.querySelector("#nowStatus"),
   nowActions: document.querySelector("#nowActions"),
-  weekRail: document.querySelector("#weekRail"),
+  nowMapButton: document.querySelector("#nowMapButton"),
+  nowGoogleMapsLink: document.querySelector("#nowGoogleMapsLink"),
+  nowNextCard: document.querySelector("#nowNextCard"),
+  nowDayLabel: document.querySelector("#nowDayLabel"),
   weekCalendar: document.querySelector("#weekCalendar"),
   selectedDateLabel: document.querySelector("#selectedDateLabel"),
   selectedDayTitle: document.querySelector("#selectedDayTitle"),
@@ -948,8 +955,9 @@ function renderNow() {
     nodes.nowKicker.textContent = "지금";
     nodes.nowTitle.textContent = "일정이 없습니다";
     nodes.nowMeta.textContent = "";
+    nodes.nowCountdown.hidden = true;
     nodes.nowStatus.textContent = "대기";
-    nodes.weekRail.innerHTML = "";
+    nodes.nowNextCard.innerHTML = "";
     nodes.weekCalendar.innerHTML = '<p class="empty-state">표시할 일정이 없습니다.</p>';
     return;
   }
@@ -965,102 +973,76 @@ function renderNow() {
   nodes.nowTitle.textContent = item.title;
   nodes.nowMeta.textContent = `${item.time} · ${item.area} · ${item.type}`;
   nodes.nowStatus.textContent = statusText;
+  const countdown = getNowCountdown(context);
+  nodes.nowCountdown.textContent = countdown;
+  nodes.nowCountdown.hidden = !countdown;
 
-  renderWeekRail(item);
-  renderWeekCalendar(item, context);
+  const hasMap = Boolean(item.map);
+  nodes.nowMapButton.hidden = !hasMap;
+  nodes.nowGoogleMapsLink.hidden = !hasMap;
+  if (hasMap) nodes.nowGoogleMapsLink.href = item.map;
+
+  const items = getCalendarItems();
+  const itemIndex = items.findIndex((entry) => entry.id === item.id);
+  const nextItem = itemIndex >= 0 ? items[itemIndex + 1] : null;
+  nodes.nowNextCard.innerHTML = nextItem ? `
+    <div>
+      <p class="panel-kicker">다음 일정</p>
+      <h3>${escapeHTML(nextItem.time)} · ${escapeHTML(nextItem.title)}</h3>
+      <p>${escapeHTML(nextItem.area)} · ${escapeHTML(nextItem.type)}</p>
+    </div>
+    <button class="small-action" type="button" data-now-next-id="${nextItem.id}">확인</button>
+  ` : `
+    <div>
+      <p class="panel-kicker">다음 일정</p>
+      <h3>모든 일정이 끝났어요</h3>
+      <p>체크하지 못한 준비물과 짐을 확인해주세요.</p>
+    </div>
+  `;
+
+  renderTodayTimeline(item.dayId, item, context);
 }
 
-function renderWeekRail(activeItem) {
-  nodes.weekRail.innerHTML = TRIP_DAYS.map((day) => {
-    const progress = getDayProgress(day);
-    const dayItems = getCalendarItems().filter((item) => item.dayId === day.id);
-    const first = dayItems[0];
-    const last = dayItems[dayItems.length - 1];
-    const isActive = activeItem && activeItem.dayId === day.id;
-    const timeRange = first && last ? `${first.time} - ${last.time}` : "일정 없음";
+function getNowCountdown(context) {
+  if (context.mode !== "current" && context.mode !== "next") return "";
+  const target = context.mode === "current" ? context.item.endDate : context.item.startDate;
+  const totalMinutes = Math.max(0, Math.ceil((target - context.now) / 60000));
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days) parts.push(`${days}일`);
+  if (hours) parts.push(`${hours}시간`);
+  if (!days && minutes) parts.push(`${minutes}분`);
+  const prefix = context.mode === "current" ? "종료까지" : "시작까지";
+  return `${prefix} ${parts.join(" ") || "곧"}`;
+}
 
+function renderTodayTimeline(dayId, activeItem, context) {
+  const day = TRIP_DAYS.find((entry) => entry.id === dayId) || TRIP_DAYS[0];
+  const dayItems = getCalendarItems().filter((item) => item.dayId === day.id);
+  nodes.nowDayLabel.textContent = `${day.label} · ${day.title}`;
+  nodes.weekCalendar.innerHTML = dayItems.map((item, index) => {
+    const isCurrent = context.mode === "current" && item.id === activeItem.id;
+    const isSelected = item.id === activeItem.id;
+    const isDone = Boolean(state.checkedStops[item.id]);
+    const classes = [
+      "today-timeline-item",
+      isCurrent ? "is-current" : "",
+      isSelected ? "is-selected" : "",
+      isDone ? "is-done" : ""
+    ].filter(Boolean).join(" ");
     return `
-      <button class="week-rail-day" type="button" data-now-day-id="${day.id}" aria-current="${isActive ? "true" : "false"}">
-        <span>${escapeHTML(day.label)}</span>
-        <strong>${escapeHTML(day.title)}</strong>
-        <small>${escapeHTML(timeRange)} · ${progress.done}/${progress.total}</small>
+      <button class="${classes}" type="button" data-calendar-stop-id="${item.id}">
+        <span class="today-timeline-marker" aria-hidden="true">${index + 1}</span>
+        <span class="today-timeline-time">${escapeHTML(item.time)}</span>
+        <span class="today-timeline-copy">
+          <strong>${escapeHTML(item.title)}</strong>
+          <small>${escapeHTML(item.area)} · ${escapeHTML(item.type)}</small>
+        </span>
       </button>
     `;
   }).join("");
-}
-
-function renderWeekCalendar(activeItem, context) {
-  const items = getCalendarItems();
-  const duration = CALENDAR_END_MINUTES - CALENDAR_START_MINUTES;
-  const labels = [];
-
-  for (let minutes = CALENDAR_START_MINUTES; minutes <= CALENDAR_END_MINUTES; minutes += 120) {
-    labels.push(`
-      <span style="top: ${((minutes - CALENDAR_START_MINUTES) / duration) * 100}%">
-        ${String(Math.floor(minutes / 60)).padStart(2, "0")}:00
-      </span>
-    `);
-  }
-
-  const dayColumns = TRIP_DAYS.map((day) => {
-    const dayItems = items.filter((item) => item.dayId === day.id);
-    const grouped = dayItems.reduce((acc, item) => {
-      const key = `${item.startMinutes}-${item.endMinutes}`;
-      acc[key] = acc[key] || [];
-      acc[key].push(item);
-      return acc;
-    }, {});
-
-    return `
-      <section class="calendar-day-column" data-calendar-day="${day.id}">
-        ${dayItems.map((item) => {
-          const top = Math.max(0, ((item.startMinutes - CALENDAR_START_MINUTES) / duration) * 100);
-          const height = Math.max(6.5, ((item.endMinutes - item.startMinutes) / duration) * 100);
-          const group = grouped[`${item.startMinutes}-${item.endMinutes}`] || [item];
-          const laneIndex = group.findIndex((entry) => entry.id === item.id);
-          const laneWidth = 100 / group.length;
-          const left = laneIndex * laneWidth;
-          const isCurrent = context.mode === "current" && activeItem && item.id === activeItem.id;
-          const isSelected = activeItem && item.id === activeItem.id;
-          const isDone = Boolean(state.checkedStops[item.id]);
-          const classes = [
-            "calendar-event",
-            isCurrent ? "is-current" : "",
-            isSelected ? "is-selected" : "",
-            isDone ? "is-done" : ""
-          ].filter(Boolean).join(" ");
-
-          return `
-            <button
-              class="${classes}"
-              type="button"
-              data-calendar-stop-id="${item.id}"
-              style="top: ${top}%; height: ${height}%; left: calc(${left}% + 3px); width: calc(${laneWidth}% - 6px);"
-              aria-label="${escapeHTML(item.time)} ${escapeHTML(item.title)}">
-              <span>${escapeHTML(item.time)}</span>
-              <strong>${escapeHTML(item.title)}</strong>
-            </button>
-          `;
-        }).join("")}
-      </section>
-    `;
-  }).join("");
-
-  nodes.weekCalendar.innerHTML = `
-    <div class="week-calendar-header">
-      <div class="calendar-corner">시간</div>
-      ${TRIP_DAYS.map((day) => `
-        <button class="calendar-day-heading" type="button" data-now-day-id="${day.id}" aria-selected="${activeItem && activeItem.dayId === day.id ? "true" : "false"}">
-          <span>${escapeHTML(day.label)}</span>
-          <strong>${escapeHTML(day.title)}</strong>
-        </button>
-      `).join("")}
-    </div>
-    <div class="week-calendar-body">
-      <div class="time-axis">${labels.join("")}</div>
-      ${dayColumns}
-    </div>
-  `;
 }
 
 function renderNextStop() {
@@ -1082,7 +1064,7 @@ function renderNextStop() {
 
   nodes.nextStopCard.innerHTML = `
     <div>
-      <p class="panel-kicker">다음 일정</p>
+      <p class="panel-kicker">다음 미완료 일정</p>
       <h2>${escapeHTML(nextStop.time)} · ${escapeHTML(nextStop.title)}</h2>
       <p>${escapeHTML(nextStop.area)} · ${escapeHTML(nextStop.type)}</p>
     </div>
@@ -1644,10 +1626,13 @@ function renderPacking() {
         const checked = state.checkedPacking[item.id] ? "checked" : "";
         const doneClass = checked ? "done" : "";
         return `
-          <label class="check-row">
-            <input type="checkbox" data-packing-id="${item.id}" ${checked}>
-            <span class="${doneClass}">${escapeHTML(item.label)}</span>
-          </label>
+          <div class="check-row">
+            <label class="packing-check">
+              <input type="checkbox" data-packing-id="${item.id}" ${checked}>
+              <span class="${doneClass}">${escapeHTML(item.label)}</span>
+            </label>
+            ${item.id.startsWith("custom-") ? `<button class="packing-delete" type="button" data-delete-packing="${item.id}" aria-label="${escapeHTML(item.label)} 삭제">×</button>` : ""}
+          </div>
         `;
       }).join("")}
     </section>
@@ -1842,19 +1827,15 @@ nodes.nowActions.addEventListener("click", (event) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-function selectNowDay(dayId) {
-  const item = getCalendarItems().find((entry) => entry.dayId === dayId);
+nodes.nowNextCard.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-now-next-id]");
+  if (!button) return;
+  const item = getStopById(button.dataset.nowNextId);
   if (!item) return;
-  selectedDayId = dayId;
+  selectedDayId = item.dayId;
   selectedNowStopId = item.id;
   persist();
   render();
-}
-
-nodes.weekRail.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-now-day-id]");
-  if (!button) return;
-  selectNowDay(button.dataset.nowDayId);
 });
 
 nodes.weekCalendar.addEventListener("click", (event) => {
@@ -1867,12 +1848,7 @@ nodes.weekCalendar.addEventListener("click", (event) => {
     selectedMapStopId = item.map ? item.id : selectedMapStopId;
     persist();
     render();
-    return;
   }
-
-  const dayButton = event.target.closest("[data-now-day-id]");
-  if (!dayButton) return;
-  selectNowDay(dayButton.dataset.nowDayId);
 });
 
 nodes.stopList.addEventListener("change", (event) => {
@@ -2003,6 +1979,16 @@ nodes.packingList.addEventListener("change", (event) => {
   render();
 });
 
+nodes.packingList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-packing]");
+  if (!button) return;
+  const itemId = button.dataset.deletePacking;
+  state.customPacking = state.customPacking.filter((item) => item.id !== itemId);
+  delete state.checkedPacking[itemId];
+  persist();
+  render();
+});
+
 nodes.journalForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(nodes.journalForm);
@@ -2114,15 +2100,12 @@ nodes.importInput.addEventListener("change", async (event) => {
 });
 
 nodes.resetButton.addEventListener("click", () => {
-  const confirmed = confirm("체크, 기록, 지출을 모두 초기화할까요?");
+  const confirmed = confirm("일정·준비물 체크 상태와 직접 추가한 준비물을 초기화할까요?");
   if (!confirmed) return;
-  localStorage.removeItem(STORAGE_KEY);
-  Object.assign(state, loadState());
-  selectedDayId = TRIP_DAYS[0].id;
-  selectedMapStopId = "";
-  mapDayFilter = TRIP_DAYS[0].id;
-  selectedNowStopId = "";
-  activeView = "now";
+  state.checkedStops = {};
+  state.checkedPacking = {};
+  state.customPacking = [];
+  persist();
   render();
 });
 

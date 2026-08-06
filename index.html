@@ -28,59 +28,62 @@
 
       <main class="tab-content">
         <section class="tab-panel is-active" id="nowPanel" data-view-panel="now">
-          <section class="calendar-shell">
-            <aside class="week-sidebar" aria-label="여행 날짜 타임라인">
-              <div class="week-sidebar-header">
-                <p class="panel-kicker">Trip week</p>
-                <h2>8월 11일 - 15일</h2>
-                <p id="nowClock">현재 시간 확인 중</p>
+          <section class="now-dashboard">
+            <p class="now-clock" id="nowClock">현재 시간 확인 중</p>
+            <article class="now-current-card" id="nowCurrentCard">
+              <div>
+                <p class="panel-kicker" id="nowKicker">지금</p>
+                <h2 id="nowTitle">현재 일정 확인</h2>
+                <p id="nowMeta"></p>
+                <p class="now-countdown" id="nowCountdown" hidden></p>
               </div>
-              <div class="week-rail" id="weekRail"></div>
-            </aside>
+              <div class="now-card-side">
+                <span class="status-pill" id="nowStatus">대기</span>
+                <div class="now-actions" id="nowActions">
+                  <button class="button primary" id="nowMapButton" type="button" data-now-action="map">지도에서 보기</button>
+                  <a class="button ghost" id="nowGoogleMapsLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
+                  <button class="button ghost" type="button" data-now-action="schedule">전체 일정</button>
+                </div>
+              </div>
+            </article>
 
-            <section class="calendar-main">
-              <article class="now-current-card" id="nowCurrentCard">
+            <article class="now-next-card" id="nowNextCard"></article>
+
+            <section class="now-timeline-panel">
+              <div class="panel-heading compact">
                 <div>
-                  <p class="panel-kicker" id="nowKicker">지금</p>
-                  <h2 id="nowTitle">현재 일정 확인</h2>
-                  <p id="nowMeta"></p>
+                  <p class="panel-kicker">하루 타임라인</p>
+                  <h2 id="nowDayLabel">오늘 일정</h2>
                 </div>
-                <div class="now-card-side">
-                  <span class="status-pill" id="nowStatus">대기</span>
-                  <div class="now-actions" id="nowActions">
-                    <button class="button primary" type="button" data-now-action="map">지도</button>
-                    <button class="button ghost" type="button" data-now-action="schedule">일정</button>
-                  </div>
-                </div>
-              </article>
-
-              <section class="week-calendar" id="weekCalendar" aria-label="주간 캘린더뷰"></section>
+              </div>
+              <div class="today-timeline" id="weekCalendar" aria-label="선택한 날짜 일정"></div>
             </section>
           </section>
         </section>
 
         <section class="tab-panel" id="schedulePanel" data-view-panel="schedule" hidden>
-          <section class="overview-grid" aria-label="여행 요약">
-            <article class="metric-card">
-              <span class="metric-label">일정 진행</span>
+          <section class="schedule-progress-card" aria-label="여행 일정 진행률">
+            <div>
+              <span class="metric-label">전체 일정 진행</span>
               <strong id="completionMetric">0%</strong>
-              <div class="meter" aria-hidden="true"><span id="completionBar"></span></div>
-            </article>
-            <article class="metric-card">
-              <span class="metric-label">체크한 일정</span>
-              <strong id="checkedMetric">0 / 0</strong>
-              <span class="metric-sub">방문, 이동, 식사 포함</span>
-            </article>
-            <article class="metric-card" hidden>
-              <span class="metric-label">기록</span>
-              <strong id="journalMetric">0개</strong>
+            </div>
+            <div class="schedule-progress-detail">
+              <span id="checkedMetric">0 / 0</span>
+              <span class="metric-sub">완료</span>
+            </div>
+            <div class="meter" aria-hidden="true"><span id="completionBar"></span></div>
+            <div hidden>
+              <article class="metric-card" hidden>
+                <span class="metric-label">기록</span>
+                <strong id="journalMetric">0개</strong>
               <span class="metric-sub">방문 메모와 여행 노트</span>
             </article>
             <article class="metric-card" hidden>
               <span class="metric-label">지출</span>
-              <strong id="expenseMetric">¥0</strong>
-              <span class="metric-sub">현지 입력 기준</span>
-            </article>
+                <strong id="expenseMetric">¥0</strong>
+                <span class="metric-sub">현지 입력 기준</span>
+              </article>
+            </div>
           </section>
 
           <nav class="day-tabs" aria-label="날짜 선택" id="dayTabs"></nav>
@@ -255,6 +258,38 @@
 
         <section class="tab-panel" id="prepPanel" data-view-panel="prep" hidden>
           <div class="prep-grid">
+            <article class="panel reservation-panel">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="panel-kicker">예약 정보</p>
+                  <h2>출발 전에 바로 확인</h2>
+                </div>
+              </div>
+              <div class="reservation-grid">
+                <section class="reservation-card">
+                  <span>가는 편 · 8월 11일</span>
+                  <strong>WE 501 · 인천 09:50 → 나리타 12:00</strong>
+                  <small>비행시간 2시간 10분 · 예약 확정</small>
+                </section>
+                <section class="reservation-card">
+                  <span>오는 편 · 8월 15일</span>
+                  <strong>WE 502 · 나리타 13:30 → 인천 16:15</strong>
+                  <small>비행시간 2시간 45분 · 예약 확정</small>
+                </section>
+                <section class="reservation-card">
+                  <span>숙소 · 8월 11일–15일</span>
+                  <strong>호텔 마루타니 · 우에노</strong>
+                  <small>6-7-6 Ueno, Taito-ku, Tokyo 110-0005</small>
+                  <a href="https://www.google.com/maps/search/?api=1&query=Hotel%20Marutani%206-7-6%20Ueno%20Taito%20Tokyo" target="_blank" rel="noreferrer">Google Maps</a>
+                </section>
+                <section class="reservation-card">
+                  <span>예약 일정</span>
+                  <strong>TeamLab · 군항 크루즈 · G-Cans · 철도박물관</strong>
+                  <small>각 예약 화면과 입장 시간을 출발 전에 재확인</small>
+                </section>
+              </div>
+            </article>
+
             <article class="panel">
               <div class="panel-heading compact">
                 <div>
@@ -270,20 +305,22 @@
               </form>
             </article>
 
-            <article class="panel">
-              <div class="panel-heading compact">
-                <div>
-                  <p class="panel-kicker">공유</p>
-                  <h2>데이터 관리</h2>
-                </div>
-              </div>
+            <details class="panel data-manager">
+              <summary>
+                <span>
+                  <span class="panel-kicker">기기 데이터</span>
+                  <strong>데이터 관리</strong>
+                </span>
+                <span aria-hidden="true">⌄</span>
+              </summary>
               <section class="control-row" aria-label="데이터 관리">
                 <button class="button primary" type="button" id="exportButton">데이터 내보내기</button>
                 <label class="button ghost" for="importInput">데이터 가져오기</label>
                 <input id="importInput" type="file" accept="application/json" hidden>
-                <button class="button danger" type="button" id="resetButton">초기화</button>
+                <button class="button danger" type="button" id="resetButton">체크 데이터 초기화</button>
               </section>
-            </article>
+              <p class="data-manager-note">체크 상태와 직접 추가한 준비물은 현재 기기에 저장됩니다.</p>
+            </details>
           </div>
         </section>
       </main>
