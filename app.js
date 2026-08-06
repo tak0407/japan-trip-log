@@ -619,20 +619,20 @@ let tripMap = null;
 let mapMarkers = [];
 let mapRouteLine = null;
 let markerByStopId = new Map();
+let renderedMapDayFilter = "";
 let googleMapsPromise = null;
 let placeSearchElement = null;
 let searchMarker = null;
 let selectedSearchPlace = null;
 let locationMarker = null;
-let oneFingerZoomInitialized = false;
 let mapStatusTimer = null;
+let waitingServiceWorker = null;
+let isReloadingForUpdate = false;
 
 const nodes = {
   completionMetric: document.querySelector("#completionMetric"),
   completionBar: document.querySelector("#completionBar"),
   checkedMetric: document.querySelector("#checkedMetric"),
-  journalMetric: document.querySelector("#journalMetric"),
-  expenseMetric: document.querySelector("#expenseMetric"),
   dayTabs: document.querySelector("#dayTabs"),
   nowClock: document.querySelector("#nowClock"),
   nowKicker: document.querySelector("#nowKicker"),
@@ -651,10 +651,6 @@ const nodes = {
   selectedDayStatus: document.querySelector("#selectedDayStatus"),
   nextStopCard: document.querySelector("#nextStopCard"),
   stopList: document.querySelector("#stopList"),
-  journalForm: document.querySelector("#journalForm"),
-  journalDay: document.querySelector("#journalDay"),
-  journalList: document.querySelector("#journalList"),
-  journalCount: document.querySelector("#journalCount"),
   offlineBanner: document.querySelector("#offlineBanner"),
   mapPanel: document.querySelector("#mapPanel .map-panel"),
   mapSearch: document.querySelector("#mapSearch"),
@@ -698,14 +694,11 @@ const nodes = {
   packingList: document.querySelector("#packingList"),
   packingForm: document.querySelector("#packingForm"),
   packingStatus: document.querySelector("#packingStatus"),
-  expenseForm: document.querySelector("#expenseForm"),
-  expenseDay: document.querySelector("#expenseDay"),
-  expenseSummary: document.querySelector("#expenseSummary"),
-  expenseRows: document.querySelector("#expenseRows"),
-  expenseCount: document.querySelector("#expenseCount"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
   resetButton: document.querySelector("#resetButton"),
+  updateToast: document.querySelector("#updateToast"),
+  updateButton: document.querySelector("#updateButton"),
   routeCanvas: document.querySelector("#routeCanvas"),
   bottomNav: document.querySelector("#bottomNav"),
   viewPanels: document.querySelectorAll("[data-view-panel]")
@@ -742,14 +735,6 @@ function persist() {
   state.mapDayFilter = mapDayFilter;
   state.appVersion = APP_VERSION;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function formatYen(value) {
-  return new Intl.NumberFormat("ja-JP", {
-    style: "currency",
-    currency: "JPY",
-    maximumFractionDigits: 0
-  }).format(value || 0);
 }
 
 function escapeHTML(value) {
@@ -893,18 +878,16 @@ function getNowContext() {
 
 function render() {
   renderActiveView();
-  renderNow();
-  renderMetrics();
-  renderDayTabs();
-  renderNextStop();
-  renderStops();
-  renderMap();
-  renderJournalFormDays();
-  renderJournal();
-  renderPacking();
-  renderExpenseFormDays();
-  renderExpenses();
-  drawRouteCanvas();
+  if (activeView === "now") renderNow();
+  if (activeView === "schedule") {
+    renderMetrics();
+    renderDayTabs();
+    renderNextStop();
+    renderStops();
+  }
+  if (activeView === "map") renderMap();
+  if (activeView === "prep") renderPacking();
+  if (activeView !== "map") drawRouteCanvas();
 }
 
 function renderActiveView() {
@@ -922,7 +905,7 @@ function renderActiveView() {
     }
   });
 
-  if (activeView === "map" && navigator.onLine) {
+  if (activeView === "map" && navigator.onLine && !tripMap) {
     loadGoogleMaps().then(renderMap).catch((error) => console.error(error));
   }
   updateConnectivityStatus();
@@ -932,13 +915,10 @@ function renderMetrics() {
   const allStops = getAllStops();
   const checked = allStops.filter((stop) => state.checkedStops[stop.id]).length;
   const percent = allStops.length ? Math.round((checked / allStops.length) * 100) : 0;
-  const expenseTotal = state.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
   nodes.completionMetric.textContent = `${percent}%`;
   nodes.completionBar.style.width = `${percent}%`;
   nodes.checkedMetric.textContent = `${checked} / ${allStops.length}`;
-  nodes.journalMetric.textContent = `${state.journal.length}개`;
-  nodes.expenseMetric.textContent = formatYen(expenseTotal);
 }
 
 function renderNow() {
@@ -1284,77 +1264,6 @@ function showCurrentLocation() {
   });
 }
 
-function initializeOneFingerMapZoom() {
-  if (oneFingerZoomInitialized) return;
-  oneFingerZoomInitialized = true;
-  let lastTap = null;
-  let zoomGesture = null;
-  let zoomFrame = 0;
-
-  nodes.mapCanvas.addEventListener("touchstart", (event) => {
-    if (event.touches.length !== 1) {
-      lastTap = null;
-      zoomGesture = null;
-      return;
-    }
-    const touch = event.touches[0];
-    const now = performance.now();
-    const isSecondTap = lastTap
-      && now - lastTap.time < 360
-      && Math.hypot(touch.clientX - lastTap.x, touch.clientY - lastTap.y) < 44;
-
-    if (isSecondTap) {
-      zoomGesture = {
-        startY: touch.clientY,
-        startZoom: tripMap?.getZoom() || MAP_ZOOM,
-        targetZoom: tripMap?.getZoom() || MAP_ZOOM,
-        moved: false
-      };
-      lastTap = null;
-      if (event.cancelable) event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-
-    lastTap = { time: now, x: touch.clientX, y: touch.clientY };
-  }, { passive: false, capture: true });
-
-  nodes.mapCanvas.addEventListener("touchmove", (event) => {
-    if (!zoomGesture || event.touches.length !== 1 || !tripMap) return;
-    const deltaY = event.touches[0].clientY - zoomGesture.startY;
-    zoomGesture.moved = zoomGesture.moved || Math.abs(deltaY) > 4;
-    zoomGesture.targetZoom = Math.max(3, Math.min(21, zoomGesture.startZoom + (deltaY / 80)));
-    if (!zoomFrame) {
-      zoomFrame = requestAnimationFrame(() => {
-        zoomFrame = 0;
-        if (zoomGesture && tripMap) {
-          tripMap.moveCamera({ zoom: zoomGesture.targetZoom });
-        }
-      });
-    }
-    if (event.cancelable) event.preventDefault();
-    event.stopPropagation();
-  }, { passive: false, capture: true });
-
-  const finishZoomGesture = (event) => {
-    if (!zoomGesture || !tripMap) return;
-    if (zoomFrame) {
-      cancelAnimationFrame(zoomFrame);
-      zoomFrame = 0;
-    }
-    if (!zoomGesture.moved) {
-      tripMap.moveCamera({ zoom: Math.min(21, zoomGesture.startZoom + 1) });
-    } else {
-      tripMap.moveCamera({ zoom: zoomGesture.targetZoom });
-    }
-    zoomGesture = null;
-    if (event.cancelable) event.preventDefault();
-    event.stopPropagation();
-  };
-  nodes.mapCanvas.addEventListener("touchend", finishZoomGesture, { passive: false, capture: true });
-  nodes.mapCanvas.addEventListener("touchcancel", finishZoomGesture, { passive: false, capture: true });
-}
-
 function openSearchPlaceSheet(place) {
   const position = { lat: place.location.lat(), lng: place.location.lng() };
   const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${position.lat},${position.lng}`)}`;
@@ -1482,10 +1391,10 @@ function renderMap() {
       isFractionalZoomEnabled: true,
       gestureHandling: "greedy"
     });
-    initializeOneFingerMapZoom();
   }
   if (!tripMap) return;
   initializePlaceSearch().catch((error) => console.error(error));
+  if (renderedMapDayFilter === mapDayFilter && mapMarkers.length) return;
 
   mapMarkers.forEach((marker) => { marker.map = null; });
   if (mapRouteLine) {
@@ -1562,6 +1471,7 @@ function renderMap() {
     tripMap.setCenter({ lat: MAP_CENTER[0], lng: MAP_CENTER[1] });
     tripMap.setZoom(MAP_ZOOM);
   }
+  renderedMapDayFilter = mapDayFilter;
 }
 
 function renderOfflineMapList(visibleStops = getMappableStops().filter((stop) => stop.dayId === mapDayFilter)) {
@@ -1626,43 +1536,6 @@ function openMapSheet(stop, subPlace = null) {
   persist();
 }
 
-function renderJournalFormDays() {
-  const currentValue = nodes.journalDay.value || selectedDayId;
-  nodes.journalDay.innerHTML = TRIP_DAYS.map((day) => (
-    `<option value="${day.id}">${escapeHTML(day.label)} ${escapeHTML(day.title)}</option>`
-  )).join("");
-  nodes.journalDay.value = TRIP_DAYS.some((day) => day.id === currentValue) ? currentValue : selectedDayId;
-}
-
-function renderJournal() {
-  const entries = [...state.journal]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  nodes.journalCount.textContent = `${state.journal.length}개`;
-
-  if (!entries.length) {
-    nodes.journalList.innerHTML = '<p class="empty-state">아직 기록이 없습니다.</p>';
-    return;
-  }
-
-  nodes.journalList.innerHTML = entries.map((entry) => {
-    const day = TRIP_DAYS.find((item) => item.id === entry.dayId);
-    return `
-    <article class="entry-card">
-      <header>
-        <h3>${escapeHTML(entry.title)}</h3>
-        <span class="tag">${escapeHTML(entry.type)}</span>
-      </header>
-      <p>${escapeHTML(entry.note || "")}</p>
-      <footer>
-        <span>${escapeHTML(day ? day.label : entry.dayId)} · ${escapeHTML(entry.rating)}점</span>
-        <button class="link-button" type="button" data-delete-journal="${entry.id}">삭제</button>
-      </footer>
-    </article>
-    `;
-  }).join("");
-}
-
 function renderPacking() {
   const items = [...DEFAULT_PACKING, ...state.customPacking];
   const done = items.filter((item) => state.checkedPacking[item.id]).length;
@@ -1691,70 +1564,6 @@ function renderPacking() {
       }).join("")}
     </section>
   `).join("");
-}
-
-function renderExpenseFormDays() {
-  const currentValue = nodes.expenseDay.value || selectedDayId;
-  nodes.expenseDay.innerHTML = TRIP_DAYS.map((day) => (
-    `<option value="${day.id}">${escapeHTML(day.label)} ${escapeHTML(day.title)}</option>`
-  )).join("");
-  nodes.expenseDay.value = TRIP_DAYS.some((day) => day.id === currentValue) ? currentValue : selectedDayId;
-}
-
-function renderExpenses() {
-  const expenses = [...state.expenses].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const total = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
-  const byCategory = summarize(expenses, "category");
-  const byPayer = summarize(expenses, "payer");
-
-  nodes.expenseCount.textContent = `${expenses.length}건`;
-  nodes.expenseSummary.innerHTML = [
-    ["총 지출", formatYen(total)],
-    ["식비", formatYen(byCategory["식비"] || 0)],
-    ["교통", formatYen(byCategory["교통"] || 0)],
-    ["최다 결제자", topSummaryLabel(byPayer)]
-  ].map(([label, value]) => `
-    <div class="summary-chip">
-      <span>${escapeHTML(label)}</span>
-      <strong>${escapeHTML(value)}</strong>
-    </div>
-  `).join("");
-
-  if (!expenses.length) {
-    nodes.expenseRows.innerHTML = `
-      <tr>
-        <td colspan="6">아직 지출 기록이 없습니다.</td>
-      </tr>
-    `;
-    return;
-  }
-
-  nodes.expenseRows.innerHTML = expenses.map((expense) => {
-    const day = TRIP_DAYS.find((item) => item.id === expense.dayId);
-    return `
-      <tr>
-        <td>${escapeHTML(day ? day.label : expense.dayId)}</td>
-        <td>${escapeHTML(expense.category)}</td>
-        <td>${formatYen(Number(expense.amount || 0))}</td>
-        <td>${escapeHTML(expense.payer || "-")}</td>
-        <td>${escapeHTML(expense.memo || "-")}</td>
-        <td><button class="link-button" type="button" data-delete-expense="${expense.id}">삭제</button></td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function summarize(items, key) {
-  return items.reduce((acc, item) => {
-    const label = item[key] || "미입력";
-    acc[label] = (acc[label] || 0) + Number(item.amount || 0);
-    return acc;
-  }, {});
-}
-
-function topSummaryLabel(summary) {
-  const [label, value] = Object.entries(summary).sort((a, b) => b[1] - a[1])[0] || [];
-  return label ? `${label} ${formatYen(value)}` : "-";
 }
 
 function drawRouteCanvas() {
@@ -1830,8 +1639,6 @@ nodes.dayTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-day-id]");
   if (!button) return;
   selectedDayId = button.dataset.dayId;
-  nodes.journalDay.value = selectedDayId;
-  nodes.expenseDay.value = selectedDayId;
   persist();
   render();
 });
@@ -1860,16 +1667,6 @@ nodes.nowActions.addEventListener("click", (event) => {
     selectedMapStopId = item.id;
     mapDayFilter = item.dayId;
     activeView = "map";
-  }
-
-  if (button.dataset.nowAction === "log") {
-    activeView = "journal";
-    render();
-    nodes.journalDay.value = item.dayId;
-    nodes.journalForm.elements.title.value = item.title;
-    nodes.journalForm.elements.note.focus();
-    persist();
-    return;
   }
 
   if (button.dataset.nowAction === "schedule") {
@@ -1940,18 +1737,6 @@ nodes.stopList.addEventListener("click", (event) => {
     return;
   }
 
-  const button = event.target.closest("[data-log-stop-id]");
-  if (!button) return;
-  const day = getSelectedDay();
-  const stop = day.stops.find((item) => item.id === button.dataset.logStopId);
-  if (!stop) return;
-  activeView = "journal";
-  persist();
-  render();
-  nodes.journalDay.value = selectedDayId;
-  nodes.journalForm.elements.title.value = stop.title;
-  nodes.journalForm.elements.note.focus();
-  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 nodes.mapSheetClose.addEventListener("click", () => {
@@ -2059,31 +1844,6 @@ nodes.packingList.addEventListener("click", (event) => {
   render();
 });
 
-nodes.journalForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = new FormData(nodes.journalForm);
-  state.journal.push({
-    id: `journal-${crypto.randomUUID()}`,
-    dayId: String(form.get("dayId") || selectedDayId),
-    title: String(form.get("title") || "").trim(),
-    note: String(form.get("note") || "").trim(),
-    type: String(form.get("type") || "기타"),
-    rating: String(form.get("rating") || "5"),
-    createdAt: new Date().toISOString()
-  });
-  nodes.journalForm.reset();
-  persist();
-  render();
-});
-
-nodes.journalList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-delete-journal]");
-  if (!button) return;
-  state.journal = state.journal.filter((entry) => entry.id !== button.dataset.deleteJournal);
-  persist();
-  render();
-});
-
 nodes.packingForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(nodes.packingForm);
@@ -2095,34 +1855,6 @@ nodes.packingForm.addEventListener("submit", (event) => {
     label
   });
   nodes.packingForm.reset();
-  persist();
-  render();
-});
-
-nodes.expenseForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = new FormData(nodes.expenseForm);
-  const amount = Number(form.get("amount") || 0);
-  if (!amount) return;
-  state.expenses.push({
-    id: `expense-${crypto.randomUUID()}`,
-    dayId: String(form.get("dayId") || selectedDayId),
-    category: String(form.get("category") || "기타"),
-    amount,
-    payer: String(form.get("payer") || "").trim(),
-    memo: String(form.get("memo") || "").trim(),
-    createdAt: new Date().toISOString()
-  });
-  nodes.expenseForm.reset();
-  nodes.expenseDay.value = selectedDayId;
-  persist();
-  render();
-});
-
-nodes.expenseRows.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-delete-expense]");
-  if (!button) return;
-  state.expenses = state.expenses.filter((expense) => expense.id !== button.dataset.deleteExpense);
   persist();
   render();
 });
@@ -2178,6 +1910,46 @@ nodes.resetButton.addEventListener("click", () => {
   persist();
   render();
 });
+
+function showUpdateAvailable(worker) {
+  waitingServiceWorker = worker;
+  nodes.updateToast.hidden = false;
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  const registration = await navigator.serviceWorker.register("./service-worker.js");
+  if (registration.waiting) showUpdateAvailable(registration.waiting);
+  registration.addEventListener("updatefound", () => {
+    const worker = registration.installing;
+    if (!worker) return;
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "installed" && navigator.serviceWorker.controller) {
+        showUpdateAvailable(worker);
+      }
+    });
+  });
+  registration.update().catch(() => {});
+}
+
+nodes.updateButton.addEventListener("click", () => {
+  if (!waitingServiceWorker) return;
+  isReloadingForUpdate = true;
+  nodes.updateButton.disabled = true;
+  nodes.updateButton.textContent = "업데이트 중…";
+  waitingServiceWorker.postMessage({ type: "SKIP_WAITING" });
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (isReloadingForUpdate) window.location.reload();
+  });
+  const startServiceWorker = () => {
+    registerServiceWorker().catch((error) => console.error("Service worker registration failed", error));
+  };
+  if (document.readyState === "complete") startServiceWorker();
+  else window.addEventListener("load", startServiceWorker, { once: true });
+}
 
 window.addEventListener("resize", drawRouteCanvas);
 

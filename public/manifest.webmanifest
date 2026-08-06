@@ -1,7 +1,7 @@
 {
   "name": "Japan Trip Log",
   "short_name": "일본 여행",
-  "description": "2026년 8월 일본 여행 일정과 기록을 관리하는 앱",
+  "description": "2026년 8월 일본 여행 일정과 장소를 확인하는 앱",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
