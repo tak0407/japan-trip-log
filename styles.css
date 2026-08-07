@@ -2197,7 +2197,12 @@ h2 {
 
 .map-day-filter[aria-pressed="true"] {
   color: var(--seed-color-fg-neutral-inverted, #fff);
-  background: var(--seed-color-bg-neutral-solid, #303036);
+  background: var(--brand);
+}
+
+.map-timeline-dot,
+.map-bottom-sheet ul.is-subplaces button > span:first-child {
+  background: var(--brand);
 }
 
 .day-tab[aria-selected="true"] span {
@@ -2357,6 +2362,120 @@ body:has(#mapPanel.is-active) .update-toast {
   right: 76px;
   max-width: 440px;
   margin-right: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .day-tab,
+  .map-day-filter,
+  .bottom-nav-item,
+  .map-fab,
+  .small-action,
+  .seed-action-button {
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      box-shadow 150ms ease,
+      transform 120ms ease;
+  }
+
+  .day-tab:active,
+  .map-day-filter:active,
+  .map-fab:active,
+  .small-action:active,
+  .seed-action-button:active {
+    transform: scale(.97);
+  }
+
+  .bottom-nav-item .nav-icon {
+    transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+  }
+
+  .bottom-nav-item[aria-current="page"] .nav-icon {
+    transform: translateY(-2px) scale(1.06);
+  }
+
+  .tab-panel.is-active:not([data-view-panel="map"]) {
+    animation: view-enter 220ms cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .map-panel .map-day-filters,
+  .map-panel .map-timeline,
+  .map-panel .map-floating-controls {
+    animation: map-control-enter 240ms cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .map-panel .map-timeline {
+    animation-delay: 45ms;
+  }
+
+  .map-panel .map-floating-controls {
+    animation-delay: 90ms;
+  }
+
+  .map-bottom-sheet:not([hidden]) {
+    animation: sheet-enter 240ms cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .place-detail-view:not([hidden]) {
+    animation: detail-enter 220ms cubic-bezier(.2, .8, .2, 1) both;
+  }
+
+  .update-toast:not([hidden]) {
+    animation: toast-enter 220ms cubic-bezier(.2, .8, .2, 1) both;
+  }
+}
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes map-control-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes detail-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 680px) {
