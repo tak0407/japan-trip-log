@@ -169,6 +169,7 @@ function MapView() {
         </div>
         <p className="map-control-status" id="mapControlStatus" role="status" hidden />
         <aside className="map-bottom-sheet" id="mapBottomSheet" hidden aria-live="polite">
+          <div className="map-sheet-handle" id="mapSheetHandle" aria-hidden="true" />
           <button className="map-sheet-close" id="mapSheetClose" type="button" aria-label="장소 상세정보 닫기">×</button>
           <p className="panel-kicker" id="mapSheetDay">장소</p>
           <h2 id="mapSheetTitle">장소 상세정보</h2>

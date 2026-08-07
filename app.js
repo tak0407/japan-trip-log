@@ -627,6 +627,7 @@ let selectedSearchPlace = null;
 let locationMarker = null;
 let mapStatusTimer = null;
 let mapResizeFrame = null;
+let mapSheetDrag = null;
 let waitingServiceWorker = null;
 let isReloadingForUpdate = false;
 
@@ -666,6 +667,7 @@ const nodes = {
   mapOfflinePanel: document.querySelector("#mapOfflinePanel"),
   mapOfflineList: document.querySelector("#mapOfflineList"),
   mapBottomSheet: document.querySelector("#mapBottomSheet"),
+  mapSheetHandle: document.querySelector("#mapSheetHandle"),
   mapSheetClose: document.querySelector("#mapSheetClose"),
   mapSheetDay: document.querySelector("#mapSheetDay"),
   mapSheetTitle: document.querySelector("#mapSheetTitle"),
@@ -1275,7 +1277,7 @@ function openSearchPlaceSheet(place) {
   nodes.mapSheetItems.innerHTML = "";
   nodes.mapSheetDetailButton.hidden = true;
   nodes.mapSheetOpenLink.href = place.googleMapsURI || fallbackUrl;
-  nodes.mapBottomSheet.hidden = false;
+  showAnimated(nodes.mapBottomSheet);
 }
 
 function openAccommodationSheet() {
@@ -1287,7 +1289,7 @@ function openAccommodationSheet() {
   nodes.mapSheetItems.innerHTML = "";
   nodes.mapSheetDetailButton.hidden = true;
   nodes.mapSheetOpenLink.href = ACCOMMODATION.map;
-  nodes.mapBottomSheet.hidden = false;
+  showAnimated(nodes.mapBottomSheet);
 }
 
 function renderPlaceDetailList(node, items) {
@@ -1338,21 +1340,60 @@ function openPlaceDetail(stop, returnView = "map") {
   nodes.placeDetailMapLink.href = stop.map;
   nodes.mapBottomSheet.hidden = true;
   nodes.placeDetailView.dataset.returnView = returnView;
+  nodes.placeDetailView.classList.remove("is-closing");
   nodes.placeDetailView.hidden = false;
   nodes.placeDetailScroll.scrollTop = 0;
   nodes.placeDetailClose.focus();
 }
 
-function closePlaceDetail() {
-  nodes.placeDetailView.hidden = true;
-  if (nodes.placeDetailView.dataset.returnView === "schedule") {
-    activeView = "schedule";
-    nodes.placeDetailView.dataset.returnView = "map";
-    persist();
-    render();
+function showAnimated(node) {
+  node.dataset.animationToken = String(Number(node.dataset.animationToken || 0) + 1);
+  node.classList.remove("is-closing", "is-dragging", "is-snapping");
+  node.style.removeProperty("--map-sheet-drag-y");
+  node.hidden = false;
+}
+
+function hideAnimated(node, onComplete) {
+  if (node.hidden) {
+    onComplete?.();
     return;
   }
-  nodes.mapSheetDetailButton.focus();
+
+  const token = String(Number(node.dataset.animationToken || 0) + 1);
+  node.dataset.animationToken = token;
+  node.classList.remove("is-dragging", "is-snapping");
+  node.style.removeProperty("--map-sheet-drag-y");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    node.hidden = true;
+    onComplete?.();
+    return;
+  }
+
+  node.classList.add("is-closing");
+  let finished = false;
+  const finish = () => {
+    if (finished || node.dataset.animationToken !== token) return;
+    finished = true;
+    node.classList.remove("is-closing");
+    node.hidden = true;
+    onComplete?.();
+  };
+  node.addEventListener("animationend", finish, { once: true });
+  window.setTimeout(finish, 280);
+}
+
+function closePlaceDetail() {
+  const returnView = nodes.placeDetailView.dataset.returnView;
+  hideAnimated(nodes.placeDetailView, () => {
+    if (returnView === "schedule") {
+      activeView = "schedule";
+      nodes.placeDetailView.dataset.returnView = "map";
+      persist();
+      render();
+      return;
+    }
+    nodes.mapSheetDetailButton.focus();
+  });
 }
 
 function renderMap() {
@@ -1547,7 +1588,7 @@ function openMapSheet(stop, subPlace = null) {
   nodes.mapSheetDetailButton.hidden = !PLACE_DETAILS[stop.id];
   nodes.mapSheetDetailButton.dataset.stopId = stop.id;
   nodes.mapSheetOpenLink.href = subPlace?.map || stop.map;
-  nodes.mapBottomSheet.hidden = false;
+  showAnimated(nodes.mapBottomSheet);
   persist();
 }
 
@@ -1754,8 +1795,54 @@ nodes.stopList.addEventListener("click", (event) => {
 
 });
 
+nodes.mapSheetHandle.addEventListener("pointerdown", (event) => {
+  if (nodes.mapBottomSheet.hidden) return;
+  mapSheetDrag = {
+    pointerId: event.pointerId,
+    startY: event.clientY,
+    deltaY: 0
+  };
+  nodes.mapBottomSheet.setPointerCapture(event.pointerId);
+  nodes.mapBottomSheet.classList.remove("is-snapping");
+  nodes.mapBottomSheet.classList.add("is-dragging");
+  event.preventDefault();
+});
+
+nodes.mapBottomSheet.addEventListener("pointermove", (event) => {
+  if (!mapSheetDrag || event.pointerId !== mapSheetDrag.pointerId) return;
+  mapSheetDrag.deltaY = Math.max(0, event.clientY - mapSheetDrag.startY);
+  nodes.mapBottomSheet.style.setProperty("--map-sheet-drag-y", `${mapSheetDrag.deltaY}px`);
+});
+
+nodes.mapBottomSheet.addEventListener("pointerup", (event) => {
+  if (!mapSheetDrag || event.pointerId !== mapSheetDrag.pointerId) return;
+  const deltaY = mapSheetDrag.deltaY;
+  mapSheetDrag = null;
+  nodes.mapBottomSheet.releasePointerCapture?.(event.pointerId);
+  if (deltaY > 96) {
+    hideAnimated(nodes.mapBottomSheet);
+    return;
+  }
+  nodes.mapBottomSheet.classList.remove("is-dragging");
+  nodes.mapBottomSheet.classList.add("is-snapping");
+  nodes.mapBottomSheet.style.setProperty("--map-sheet-drag-y", "0px");
+  window.setTimeout(() => {
+    nodes.mapBottomSheet.classList.remove("is-snapping");
+    nodes.mapBottomSheet.style.removeProperty("--map-sheet-drag-y");
+  }, 190);
+});
+
+nodes.mapBottomSheet.addEventListener("pointercancel", () => {
+  if (!mapSheetDrag) return;
+  mapSheetDrag = null;
+  nodes.mapBottomSheet.classList.remove("is-dragging");
+  nodes.mapBottomSheet.classList.add("is-snapping");
+  nodes.mapBottomSheet.style.setProperty("--map-sheet-drag-y", "0px");
+  window.setTimeout(() => nodes.mapBottomSheet.classList.remove("is-snapping"), 190);
+});
+
 nodes.mapSheetClose.addEventListener("click", () => {
-  nodes.mapBottomSheet.hidden = true;
+  hideAnimated(nodes.mapBottomSheet);
 });
 
 nodes.mapSheetDetailButton.addEventListener("click", () => {
