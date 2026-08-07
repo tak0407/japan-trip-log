@@ -626,6 +626,7 @@ let searchMarker = null;
 let selectedSearchPlace = null;
 let locationMarker = null;
 let mapStatusTimer = null;
+let mapResizeFrame = null;
 let waitingServiceWorker = null;
 let isReloadingForUpdate = false;
 
@@ -1060,11 +1061,10 @@ function renderDayTabs() {
   nodes.dayTabs.innerHTML = TRIP_DAYS.map((day) => {
     const progress = getDayProgress(day);
     const selected = day.id === selectedDayId ? "true" : "false";
+    const shortLabel = day.label.split(" ")[0];
     return `
-      <button class="day-tab" type="button" data-day-id="${day.id}" aria-selected="${selected}">
-        <strong>${escapeHTML(day.label)}</strong>
-        <span>${escapeHTML(day.title)}</span>
-        <span>${progress.done} / ${progress.total}</span>
+      <button class="day-tab" type="button" data-day-id="${day.id}" aria-selected="${selected}" aria-label="${escapeHTML(`${day.label}, ${day.title}, ${progress.done} / ${progress.total} 완료`)}">
+        <strong>${escapeHTML(shortLabel)}</strong>
       </button>
     `;
   }).join("");
@@ -1169,7 +1169,7 @@ function showSearchPlace(place) {
   clearSearchMarker();
   const position = { lat: place.location.lat(), lng: place.location.lng() };
   const pin = new google.maps.marker.PinElement({
-    glyph: "•",
+    glyphText: "•",
     background: "#b7791f",
     borderColor: "#ffffff",
     glyphColor: "#ffffff",
@@ -1179,10 +1179,11 @@ function showSearchPlace(place) {
     map: tripMap,
     position,
     title: place.displayName || "검색한 장소",
-    content: pin.element
+    content: pin,
+    gmpClickable: true
   });
   selectedSearchPlace = place;
-  searchMarker.addListener("click", () => openSearchPlaceSheet(place));
+  searchMarker.addEventListener("gmp-click", () => openSearchPlaceSheet(place));
   tripMap.panTo(position);
   tripMap.setZoom(16);
   closeMapSearch();
@@ -1237,7 +1238,7 @@ function showCurrentLocation() {
     };
     if (locationMarker) locationMarker.map = null;
     const pin = new google.maps.marker.PinElement({
-      glyph: "●",
+      glyphText: "●",
       background: "#2f7d68",
       borderColor: "#ffffff",
       glyphColor: "#ffffff",
@@ -1247,7 +1248,7 @@ function showCurrentLocation() {
       map: tripMap,
       position: current,
       title: "내 위치",
-      content: pin.element,
+      content: pin,
       zIndex: 100
     });
     tripMap.panTo(current);
@@ -1406,7 +1407,7 @@ function renderMap() {
   mapMarkers = mapPoints.map((point) => {
     const [lat, lng] = point.coordinates;
     const pin = new google.maps.marker.PinElement({
-      glyph: point.label,
+      glyphText: point.label,
       background: "#286f9e",
       borderColor: "#ffffff",
       glyphColor: "#ffffff"
@@ -1415,16 +1416,17 @@ function renderMap() {
       map: tripMap,
       position: { lat, lng },
       title: point.title,
-      content: pin.element
+      content: pin,
+      gmpClickable: true
     });
-    marker.addListener("click", () => openMapSheet(point.stop, point.id === point.stop.id ? null : point));
+    marker.addEventListener("gmp-click", () => openMapSheet(point.stop, point.id === point.stop.id ? null : point));
     markerByStopId.set(point.id, marker);
     if (!markerByStopId.has(point.stop.id)) markerByStopId.set(point.stop.id, marker);
     return marker;
   });
   const [hotelLat, hotelLng] = ACCOMMODATION.coordinates;
   const hotelPin = new google.maps.marker.PinElement({
-    glyph: "H",
+    glyphText: "H",
     background: "#2f7d68",
     borderColor: "#ffffff",
     glyphColor: "#ffffff"
@@ -1433,9 +1435,10 @@ function renderMap() {
     map: tripMap,
     position: { lat: hotelLat, lng: hotelLng },
     title: ACCOMMODATION.title,
-    content: hotelPin.element
+    content: hotelPin,
+    gmpClickable: true
   });
-  hotelMarker.addListener("click", openAccommodationSheet);
+  hotelMarker.addEventListener("gmp-click", openAccommodationSheet);
   mapMarkers.push(hotelMarker);
   markerByStopId.set(ACCOMMODATION.id, hotelMarker);
 
@@ -1472,6 +1475,18 @@ function renderMap() {
     tripMap.setZoom(MAP_ZOOM);
   }
   renderedMapDayFilter = mapDayFilter;
+}
+
+function syncTripMapSize() {
+  if (!tripMap || activeView !== "map" || !window.google?.maps) return;
+  if (mapResizeFrame) cancelAnimationFrame(mapResizeFrame);
+  const center = tripMap.getCenter();
+  const zoom = tripMap.getZoom();
+  mapResizeFrame = requestAnimationFrame(() => {
+    google.maps.event.trigger(tripMap, "resize");
+    if (center && Number.isFinite(zoom)) tripMap.moveCamera({ center, zoom });
+    mapResizeFrame = null;
+  });
 }
 
 function renderOfflineMapList(visibleStops = getMappableStops().filter((stop) => stop.dayId === mapDayFilter)) {
@@ -1951,7 +1966,16 @@ if ("serviceWorker" in navigator) {
   else window.addEventListener("load", startServiceWorker, { once: true });
 }
 
-window.addEventListener("resize", drawRouteCanvas);
+window.addEventListener("resize", () => {
+  drawRouteCanvas();
+  syncTripMapSize();
+});
+window.addEventListener("orientationchange", syncTripMapSize);
+
+if ("ResizeObserver" in window) {
+  const mapResizeObserver = new ResizeObserver(syncTripMapSize);
+  mapResizeObserver.observe(nodes.mapCanvas);
+}
 
 window.addEventListener("online", () => {
   updateConnectivityStatus();

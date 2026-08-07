@@ -1,21 +1,26 @@
-:root {
+:root,
+:root[data-seed-color-mode="light-only"] {
   color-scheme: light;
   --trip-brand: #286f9e;
   --trip-brand-pressed: #205d84;
   --trip-brand-weak: #e8f3f8;
   --trip-brand-weak-pressed: #d9eaf2;
-  --trip-positive: #2d7a61;
+  --trip-positive: #21624f;
   --trip-positive-weak: #e8f4ef;
-  --seed-color-bg-brand-solid: var(--trip-brand);
-  --seed-color-bg-brand-solid-pressed: var(--trip-brand-pressed);
-  --seed-color-bg-brand-weak: var(--trip-brand-weak);
-  --seed-color-bg-brand-weak-pressed: var(--trip-brand-weak-pressed);
-  --seed-color-fg-brand: var(--trip-brand);
-  --seed-color-fg-brand-contrast: #ffffff;
-  --seed-color-stroke-brand-solid: var(--trip-brand);
-  --seed-color-stroke-brand-weak: #bad5e2;
-  --seed-color-bg-positive-weak: var(--trip-positive-weak);
-  --seed-color-fg-positive: var(--trip-positive);
+  --seed-color-bg-brand-solid: var(--trip-brand) !important;
+  --seed-color-bg-brand-solid-pressed: var(--trip-brand-pressed) !important;
+  --seed-color-bg-brand-weak: var(--trip-brand-weak) !important;
+  --seed-color-bg-brand-weak-pressed: var(--trip-brand-weak-pressed) !important;
+  --seed-color-fg-brand: var(--trip-brand) !important;
+  --seed-color-fg-brand-contrast: #ffffff !important;
+  --seed-color-stroke-brand-solid: var(--trip-brand) !important;
+  --seed-color-stroke-brand-weak: #bad5e2 !important;
+  --seed-color-bg-positive-weak: var(--trip-positive-weak) !important;
+  --seed-color-fg-positive: var(--trip-positive) !important;
+  --seed-color-fg-neutral-subtle: #667085 !important;
+  --seed-color-fg-warning: #6b5218 !important;
+  --seed-color-bg-critical-solid: #b42318 !important;
+  --seed-color-bg-critical-solid-pressed: #8f1d15 !important;
   --bg: var(--seed-color-bg-layer-basement, #f4f4f4);
   --panel: var(--seed-color-bg-layer-default, #ffffff);
   --panel-strong: var(--seed-color-bg-neutral-weak, #f2f3f5);
@@ -34,6 +39,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 html {
@@ -245,16 +254,17 @@ h2 {
 
 .day-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(72px, 88px));
   gap: 8px;
+  justify-content: start;
   margin-bottom: 12px;
 }
 
 .day-tab {
-  min-height: 66px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.86);
   text-align: left;
   color: var(--ink);
@@ -265,19 +275,12 @@ h2 {
   background: #eaf4f8;
 }
 
-.day-tab strong,
-.day-tab span {
+.day-tab strong {
   display: block;
 }
 
 .day-tab strong {
   font-size: 0.94rem;
-}
-
-.day-tab span {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.8rem;
 }
 
 .tab-content {
@@ -1861,6 +1864,20 @@ h2 {
   }
 }
 
+@media (max-width: 900px) and (min-width: 681px) {
+  .now-current-card {
+    grid-template-columns: 1fr;
+  }
+
+  .now-card-side {
+    justify-items: stretch;
+  }
+
+  .now-actions {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 680px) {
   .app-shell {
     width: min(100% - 20px, 1180px);
@@ -1908,19 +1925,18 @@ h2 {
   }
 
   .day-tabs {
-    display: flex;
-    gap: 7px;
-    margin-right: -10px;
-    margin-left: -10px;
-    padding: 0 10px 3px;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+    margin-right: 0;
+    margin-left: 0;
+    padding: 0;
+    overflow: visible;
   }
 
   .day-tab {
-    flex: 0 0 142px;
-    min-height: 60px;
-    scroll-snap-align: start;
+    min-width: 0;
+    min-height: 44px;
   }
 
   .control-row {
@@ -2167,13 +2183,18 @@ h2 {
 }
 
 .day-tab {
-  min-height: 58px;
+  min-height: 44px;
   border-radius: var(--seed-radius-full, 999px);
-  padding: 9px 16px;
+  padding: 8px 10px;
+  background: #e4e8ec;
   text-align: center;
 }
 
-.day-tab[aria-selected="true"],
+.day-tab[aria-selected="true"] {
+  color: var(--seed-color-fg-neutral-inverted, #fff);
+  background: var(--brand);
+}
+
 .map-day-filter[aria-pressed="true"] {
   color: var(--seed-color-fg-neutral-inverted, #fff);
   background: var(--seed-color-bg-neutral-solid, #303036);
@@ -2315,7 +2336,7 @@ h2 {
 .bottom-nav-item {
   min-height: 52px;
   border-radius: var(--seed-radius-r3, 12px);
-  color: var(--seed-color-fg-neutral-subtle, #a0a4ab);
+  color: #667085;
   font-size: var(--seed-font-size-t2, 12px);
   font-weight: var(--seed-font-weight-bold, 700);
 }
@@ -2330,6 +2351,12 @@ h2 {
   border-radius: var(--seed-radius-r4, 16px);
   background: var(--seed-color-bg-neutral-inverted, #212124);
   box-shadow: 0 8px 24px rgba(33, 33, 36, .2);
+}
+
+body:has(#mapPanel.is-active) .update-toast {
+  right: 76px;
+  max-width: 440px;
+  margin-right: 0;
 }
 
 @media (max-width: 680px) {
@@ -2389,19 +2416,14 @@ h2 {
   }
 
   .day-tabs {
-    margin-right: -16px;
-    margin-left: -16px;
-    padding: 0 16px 4px;
+    margin-right: 0;
+    margin-left: 0;
+    padding: 0;
   }
 
   .day-tab {
-    flex-basis: 104px;
-    min-height: 48px;
-    padding: 8px 14px;
-  }
-
-  .day-tab span {
-    display: none;
+    min-height: 44px;
+    padding: 7px 2px;
   }
 
   .day-tab strong {
