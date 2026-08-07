@@ -1,4 +1,7 @@
-const CACHE_NAME = "japan-trip-log-v30";
+// The version token below is replaced with the build id at build time
+// (vite.config.js), so every deploy ships a byte-different worker and
+// triggers the update flow.
+const CACHE_NAME = "japan-trip-log-__CACHE_VERSION__";
 const STATIC_ASSETS = ["./manifest.webmanifest", "./icon.svg"];
 
 async function cacheAppShell() {
