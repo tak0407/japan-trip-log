@@ -2364,6 +2364,15 @@ body:has(#mapPanel.is-active) .update-toast {
   margin-right: 0;
 }
 
+body:has(#mapBottomSheet:not([hidden])) .update-toast {
+  top: calc(max(12px, env(safe-area-inset-top)) + 150px);
+  right: 12px;
+  bottom: auto;
+  left: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .day-tab,
   .map-day-filter,
