@@ -1,5 +1,13 @@
 import { useEffect } from "react";
-import { ActionButton } from "@seed-design/react";
+import { ActionButton, Icon } from "@seed-design/react";
+import {
+  IconCalendarLine,
+  IconClockLine,
+  IconCrosshairLine,
+  IconMagnifyingglassLine,
+  IconMapLocationpinLine,
+  IconShoppingbagLine
+} from "@karrotmarket/react-monochrome-icon";
 
 function Header() {
   return (
@@ -153,10 +161,10 @@ function MapView() {
         </section>
         <div className="map-floating-controls" aria-label="지도 기능">
           <button className="map-fab" id="mapSearchToggle" type="button" aria-label="장소 검색" aria-expanded="false">
-            <span className="map-fab-search-icon" aria-hidden="true" />
+            <Icon svg={<IconMagnifyingglassLine />} size={24} />
           </button>
           <button className="map-fab" id="mapLocateButton" type="button" aria-label="내 위치로 이동">
-            <span className="map-fab-location-icon" aria-hidden="true" />
+            <Icon svg={<IconCrosshairLine />} size={24} />
           </button>
         </div>
         <p className="map-control-status" id="mapControlStatus" role="status" hidden />
@@ -252,15 +260,15 @@ function PrepView() {
 
 function BottomNavigation() {
   const items = [
-    ["now", "지금"],
-    ["schedule", "일정"],
-    ["map", "지도"],
-    ["prep", "준비"]
+    ["now", "지금", IconClockLine],
+    ["schedule", "일정", IconCalendarLine],
+    ["map", "지도", IconMapLocationpinLine],
+    ["prep", "준비", IconShoppingbagLine]
   ];
 
   return (
     <nav className="bottom-nav" id="bottomNav" aria-label="주요 메뉴">
-      {items.map(([view, label], index) => (
+      {items.map(([view, label, NavIcon], index) => (
         <button
           className="bottom-nav-item"
           type="button"
@@ -269,7 +277,7 @@ function BottomNavigation() {
           aria-controls={`${view}Panel`}
           key={view}
         >
-          <span className={`nav-icon nav-icon-${view}`} aria-hidden="true" />
+          <Icon className="nav-icon" svg={<NavIcon />} size={24} />
           <span>{label}</span>
         </button>
       ))}
