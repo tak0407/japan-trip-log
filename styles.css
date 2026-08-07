@@ -1349,13 +1349,24 @@ h2 {
   animation: none !important;
   transform: translate3d(-50%, var(--map-sheet-drag-y, 0px), 0) !important;
   transition: none !important;
-  will-change: transform;
+  opacity: calc(1 - min(var(--map-sheet-drag-p, 0), 1) * .35);
+  will-change: transform, opacity;
 }
 
 .map-bottom-sheet.is-snapping {
   animation: none !important;
   transform: translate3d(-50%, 0, 0);
-  transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+  opacity: 1;
+  transition: transform 180ms cubic-bezier(.2, .8, .2, 1), opacity 180ms ease-out;
+}
+
+.map-bottom-sheet.is-dismissing {
+  animation: none !important;
+  transform: translate3d(-50%, var(--map-sheet-drag-y, 0px), 0) !important;
+  opacity: 0;
+  transition: transform 220ms cubic-bezier(.4, 0, 1, 1), opacity 200ms ease-out;
+  pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .map-bottom-sheet[hidden] {
@@ -1467,8 +1478,9 @@ h2 {
   top: 0;
   left: 50%;
   z-index: 1;
-  width: 52px;
-  height: 34px;
+  /* Wide hit target across the top strip, stopping short of the 40px close button. */
+  width: calc(100% - 112px);
+  height: 40px;
   cursor: grab;
   touch-action: none;
   transform: translateX(-50%);

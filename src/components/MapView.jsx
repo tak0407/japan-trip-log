@@ -17,6 +17,10 @@ import PlaceDetail from "./PlaceDetail.jsx";
 const SHEET_EXIT_TIMEOUT = 280;
 const SHEET_SNAP_TIMEOUT = 190;
 const SHEET_DISMISS_DELTA = 96;
+const SHEET_FLICK_VELOCITY = 0.55; // px/ms downward — a quick flick dismisses below the delta
+const SHEET_FLICK_MIN_DELTA = 28;
+const SHEET_MAX_UP_DELTA = 16; // rubber-band ceiling when dragging upward
+const SHEET_DRAG_FADE_RANGE = 220; // px of drag mapped onto the fade progress var
 
 function prefersReducedMotion() {
   return typeof window !== "undefined"
@@ -107,7 +111,7 @@ export default function MapView() {
 
   const sheetVisibleRef = useRef(false);
   const sheetTokenRef = useRef(0);
-  const sheetTransientRef = useRef({ dragging: false, snapping: false });
+  const sheetTransientRef = useRef({ dragging: false, snapping: false, dismissing: false });
   const searchOpenRef = useRef(false);
   const activeViewRef = useRef(activeView);
 
@@ -122,14 +126,16 @@ export default function MapView() {
     if (!node) return;
     node.classList.toggle("is-dragging", sheetTransientRef.current.dragging);
     node.classList.toggle("is-snapping", sheetTransientRef.current.snapping);
+    node.classList.toggle("is-dismissing", sheetTransientRef.current.dismissing);
   }, []);
 
   useLayoutEffect(applySheetTransient);
 
   const resetSheetDragStyles = useCallback(() => {
-    sheetTransientRef.current = { dragging: false, snapping: false };
+    sheetTransientRef.current = { dragging: false, snapping: false, dismissing: false };
     applySheetTransient();
     sheetRef.current?.style.removeProperty("--map-sheet-drag-y");
+    sheetRef.current?.style.removeProperty("--map-sheet-drag-p");
   }, [applySheetTransient]);
 
   // showAnimated(nodes.mapBottomSheet) in app.js
@@ -178,6 +184,31 @@ export default function MapView() {
     node.addEventListener("animationend", finish, { once: true });
     window.setTimeout(finish, SHEET_EXIT_TIMEOUT);
   }, [resetSheetDragStyles]);
+
+  // Drag-dismiss variant: slide out from the current dragged position instead of
+  // snapping back to 0 and replaying the sheet-exit keyframe (which visibly jumps).
+  const dismissSheetFromDrag = useCallback(() => {
+    const node = sheetRef.current;
+    if (!sheetVisibleRef.current) return;
+    if (prefersReducedMotion() || !node) {
+      hideSheetImmediate();
+      return;
+    }
+    sheetTokenRef.current += 1;
+    const token = sheetTokenRef.current;
+    sheetTransientRef.current = { dragging: false, snapping: false, dismissing: true };
+    applySheetTransient();
+    node.style.setProperty("--map-sheet-drag-y", `${node.offsetHeight + 120}px`);
+    node.style.setProperty("--map-sheet-drag-p", "1");
+    let finished = false;
+    const finish = () => {
+      if (finished || sheetTokenRef.current !== token) return;
+      finished = true;
+      hideSheetImmediate();
+    };
+    node.addEventListener("transitionend", finish, { once: true });
+    window.setTimeout(finish, SHEET_EXIT_TIMEOUT);
+  }, [applySheetTransient, hideSheetImmediate]);
 
   // ---- status pill ---------------------------------------------------------
   const showMapControlStatus = useCallback((message, duration = 2600) => {
@@ -549,14 +580,17 @@ export default function MapView() {
 
   // ---- drag-to-dismiss gesture ---------------------------------------------
   const onHandlePointerDown = useCallback((event) => {
-    if (!sheetVisibleRef.current) return;
+    if (!sheetVisibleRef.current || sheetTransientRef.current.dismissing) return;
     mapSheetDragRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
-      deltaY: 0
+      deltaY: 0,
+      prevY: event.clientY,
+      prevT: event.timeStamp,
+      velocity: 0
     };
     sheetRef.current?.setPointerCapture(event.pointerId);
-    sheetTransientRef.current = { dragging: true, snapping: false };
+    sheetTransientRef.current = { dragging: true, snapping: false, dismissing: false };
     applySheetTransient();
     event.preventDefault();
   }, [applySheetTransient]);
@@ -564,19 +598,41 @@ export default function MapView() {
   const onSheetPointerMove = useCallback((event) => {
     const drag = mapSheetDragRef.current;
     if (!drag || event.pointerId !== drag.pointerId) return;
-    drag.deltaY = Math.max(0, event.clientY - drag.startY);
-    sheetRef.current?.style.setProperty("--map-sheet-drag-y", `${drag.deltaY}px`);
+    const raw = event.clientY - drag.startY;
+    // Downward follows the finger; upward gets rubber-band resistance.
+    drag.deltaY = raw >= 0
+      ? raw
+      : -Math.min(SHEET_MAX_UP_DELTA, -raw * 0.25);
+    const dt = event.timeStamp - drag.prevT;
+    if (dt > 0) {
+      const instant = (event.clientY - drag.prevY) / dt;
+      drag.velocity = drag.velocity * 0.4 + instant * 0.6;
+      drag.prevY = event.clientY;
+      drag.prevT = event.timeStamp;
+    }
+    const node = sheetRef.current;
+    if (node) {
+      node.style.setProperty("--map-sheet-drag-y", `${drag.deltaY}px`);
+      node.style.setProperty(
+        "--map-sheet-drag-p",
+        `${Math.min(1, Math.max(0, drag.deltaY / SHEET_DRAG_FADE_RANGE))}`
+      );
+    }
     event.preventDefault();
   }, []);
 
   const snapSheetBack = useCallback((clearDragY) => {
-    sheetTransientRef.current = { dragging: false, snapping: true };
+    sheetTransientRef.current = { dragging: false, snapping: true, dismissing: false };
     applySheetTransient();
     sheetRef.current?.style.setProperty("--map-sheet-drag-y", "0px");
+    sheetRef.current?.style.setProperty("--map-sheet-drag-p", "0");
     window.setTimeout(() => {
       sheetTransientRef.current = { ...sheetTransientRef.current, snapping: false };
       applySheetTransient();
-      if (clearDragY) sheetRef.current?.style.removeProperty("--map-sheet-drag-y");
+      if (clearDragY) {
+        sheetRef.current?.style.removeProperty("--map-sheet-drag-y");
+        sheetRef.current?.style.removeProperty("--map-sheet-drag-p");
+      }
     }, SHEET_SNAP_TIMEOUT);
   }, [applySheetTransient]);
 
@@ -584,14 +640,16 @@ export default function MapView() {
     const drag = mapSheetDragRef.current;
     if (!drag || event.pointerId !== drag.pointerId) return;
     const deltaY = drag.deltaY;
+    const velocity = drag.velocity;
     mapSheetDragRef.current = null;
     sheetRef.current?.releasePointerCapture?.(event.pointerId);
-    if (deltaY > SHEET_DISMISS_DELTA) {
-      hideSheetAnimated();
+    const flicked = deltaY > SHEET_FLICK_MIN_DELTA && velocity > SHEET_FLICK_VELOCITY;
+    if (deltaY > SHEET_DISMISS_DELTA || flicked) {
+      dismissSheetFromDrag();
       return;
     }
     snapSheetBack(true);
-  }, [hideSheetAnimated, snapSheetBack]);
+  }, [dismissSheetFromDrag, snapSheetBack]);
 
   const onSheetPointerCancel = useCallback(() => {
     if (!mapSheetDragRef.current) return;
