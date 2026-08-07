@@ -1346,12 +1346,15 @@ h2 {
 }
 
 .map-bottom-sheet.is-dragging {
-  transform: translate(-50%, var(--map-sheet-drag-y, 0px));
+  animation: none !important;
+  transform: translate3d(-50%, var(--map-sheet-drag-y, 0px), 0) !important;
   transition: none !important;
+  will-change: transform;
 }
 
 .map-bottom-sheet.is-snapping {
-  transform: translate(-50%, 0);
+  animation: none !important;
+  transform: translate3d(-50%, 0, 0);
   transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
 }
 

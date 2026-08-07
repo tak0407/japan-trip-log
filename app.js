@@ -1812,6 +1812,7 @@ nodes.mapBottomSheet.addEventListener("pointermove", (event) => {
   if (!mapSheetDrag || event.pointerId !== mapSheetDrag.pointerId) return;
   mapSheetDrag.deltaY = Math.max(0, event.clientY - mapSheetDrag.startY);
   nodes.mapBottomSheet.style.setProperty("--map-sheet-drag-y", `${mapSheetDrag.deltaY}px`);
+  event.preventDefault();
 });
 
 nodes.mapBottomSheet.addEventListener("pointerup", (event) => {
