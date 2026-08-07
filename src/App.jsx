@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ActionButton } from "@seed-design/react";
 
 function Header() {
   return (
@@ -30,9 +31,11 @@ function NowView() {
           <div className="now-card-side">
             <span className="status-pill" id="nowStatus">대기</span>
             <div className="now-actions" id="nowActions">
-              <button className="button primary" id="nowMapButton" type="button" data-now-action="map">지도에서 보기</button>
-              <a className="button ghost" id="nowGoogleMapsLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
-              <button className="button ghost" type="button" data-now-action="schedule">전체 일정</button>
+              <ActionButton variant="neutralSolid" size="large" id="nowMapButton" type="button" data-now-action="map">지도에서 보기</ActionButton>
+              <ActionButton asChild variant="neutralWeak" size="large">
+                <a id="nowGoogleMapsLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
+              </ActionButton>
+              <ActionButton variant="ghost" size="large" type="button" data-now-action="schedule">전체 일정</ActionButton>
             </div>
           </div>
         </article>
@@ -120,8 +123,12 @@ function PlaceDetail() {
         <p className="place-detail-updated">2026년 8월 여행 기준 · 운영정보는 방문 전 공식 페이지에서 다시 확인</p>
       </div>
       <footer className="place-detail-actions">
-        <a className="button ghost" id="placeDetailOfficialLink" href="#" target="_blank" rel="noreferrer">공식 정보</a>
-        <a className="button primary" id="placeDetailMapLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
+        <ActionButton asChild variant="neutralWeak" size="large">
+          <a id="placeDetailOfficialLink" href="#" target="_blank" rel="noreferrer">공식 정보</a>
+        </ActionButton>
+        <ActionButton asChild variant="neutralSolid" size="large">
+          <a id="placeDetailMapLink" href="#" target="_blank" rel="noreferrer">Google Maps</a>
+        </ActionButton>
       </footer>
     </section>
   );
@@ -161,8 +168,10 @@ function MapView() {
           <p className="map-sheet-address" id="mapSheetAddress" />
           <ul id="mapSheetItems" />
           <div className="map-sheet-actions">
-            <button className="button primary full" id="mapSheetDetailButton" type="button">장소 상세보기</button>
-            <a className="button ghost full" id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+            <ActionButton className="full" variant="neutralSolid" size="large" id="mapSheetDetailButton" type="button">장소 상세보기</ActionButton>
+            <ActionButton asChild className="full" variant="neutralWeak" size="large">
+              <a id="mapSheetOpenLink" href="#" target="_blank" rel="noreferrer">Google Maps에서 열기</a>
+            </ActionButton>
           </div>
         </aside>
         <PlaceDetail />
@@ -217,7 +226,7 @@ function PrepView() {
           <div className="packing-list" id="packingList" />
           <form className="inline-form" id="packingForm">
             <input name="item" type="text" maxLength="32" placeholder="추가 준비물" />
-            <button className="button ghost" type="submit">추가</button>
+            <ActionButton variant="neutralWeak" size="medium" type="submit">추가</ActionButton>
           </form>
         </article>
         <details className="panel data-manager">
@@ -229,10 +238,10 @@ function PrepView() {
             <span aria-hidden="true">⌄</span>
           </summary>
           <section className="control-row" aria-label="데이터 관리">
-            <button className="button primary" type="button" id="exportButton">데이터 내보내기</button>
+            <ActionButton variant="neutralSolid" type="button" id="exportButton">데이터 내보내기</ActionButton>
             <label className="button ghost" htmlFor="importInput">데이터 가져오기</label>
             <input id="importInput" type="file" accept="application/json" hidden />
-            <button className="button danger" type="button" id="resetButton">체크 데이터 초기화</button>
+            <ActionButton variant="criticalSolid" type="button" id="resetButton">체크 데이터 초기화</ActionButton>
           </section>
           <p className="data-manager-note">체크 상태와 직접 추가한 준비물은 현재 기기에 저장됩니다.</p>
         </details>

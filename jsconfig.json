@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "seed-design/*": ["./src/seed-design/*"]
+    }
+  },
+  "include": ["src"]
+}

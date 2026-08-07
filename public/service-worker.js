@@ -1,4 +1,4 @@
-const CACHE_NAME = "japan-trip-log-v24";
+const CACHE_NAME = "japan-trip-log-v25";
 const STATIC_ASSETS = ["./manifest.webmanifest", "./icon.svg"];
 
 async function cacheAppShell() {
