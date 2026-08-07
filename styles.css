@@ -1781,6 +1781,64 @@ h2 {
   text-align: center;
 }
 
+/* ---- travel guide overlay (shares place-detail base styles) ---- */
+
+.small-action.guide-action {
+  border-color: color-mix(in srgb, var(--blue) 45%, #ffffff);
+  background: color-mix(in srgb, var(--blue) 10%, #ffffff);
+  color: var(--blue);
+}
+
+.guide-hero {
+  padding-top: 26px;
+}
+
+.guide-steps {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: guide-step;
+}
+
+.guide-steps li {
+  position: relative;
+  padding-left: 34px;
+  color: var(--ink);
+  font-size: .88rem;
+  font-weight: 600;
+  line-height: 1.55;
+  counter-increment: guide-step;
+}
+
+.guide-steps li::before {
+  content: counter(guide-step);
+  position: absolute;
+  top: 1px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--blue) 12%, #ffffff);
+  color: var(--blue);
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.guide-actions > * {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 140px;
+}
+
 .place-detail-actions {
   position: relative;
   z-index: 2;

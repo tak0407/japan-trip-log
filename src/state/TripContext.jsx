@@ -51,6 +51,7 @@ export function TripProvider({ children }) {
   const [state, setState] = useState(loadState);
   const [selectedNowStopId, setSelectedNowStopId] = useState("");
   const [placeDetail, setPlaceDetail] = useState(null);
+  const [guideStopId, setGuideStopId] = useState("");
   const stateRef = useRef(state);
 
   stateRef.current = state;
@@ -183,6 +184,15 @@ export function TripProvider({ children }) {
     return true;
   }, []);
 
+  const openGuide = useCallback((stopId) => {
+    if (!stopId) return;
+    setGuideStopId(stopId);
+  }, []);
+
+  const closeGuide = useCallback(() => {
+    setGuideStopId("");
+  }, []);
+
   const openPlaceDetail = useCallback((stop, returnView = "map") => {
     if (!stop) return;
     setPlaceDetail({ stop, returnView });
@@ -201,6 +211,9 @@ export function TripProvider({ children }) {
     state,
     selectedNowStopId,
     placeDetail,
+    guideStopId,
+    openGuide,
+    closeGuide,
     setActiveView,
     setSelectedDayId,
     setMapDayFilter,
@@ -219,6 +232,9 @@ export function TripProvider({ children }) {
     state,
     selectedNowStopId,
     placeDetail,
+    guideStopId,
+    openGuide,
+    closeGuide,
     setActiveView,
     setSelectedDayId,
     setMapDayFilter,

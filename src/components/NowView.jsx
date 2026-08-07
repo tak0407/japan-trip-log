@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActionButton } from "@seed-design/react";
 import { TRIP_DAYS } from "../data/trip.js";
+import { GUIDES } from "../data/guides.js";
 import {
   getCalendarItems,
   getNowContext,
@@ -27,9 +28,21 @@ const clockFormatter = new Intl.DateTimeFormat("ko-KR", {
   minute: "2-digit"
 });
 
-function NowActions({ hasMap, mapHref, onMap, onSchedule }) {
+function NowActions({ hasMap, hasGuide, mapHref, onMap, onSchedule, onGuide }) {
   return (
     <div className="now-actions" id="nowActions">
+      {hasGuide ? (
+        <ActionButton
+          variant="neutralSolid"
+          size="large"
+          id="nowGuideButton"
+          type="button"
+          data-now-action="guide"
+          onClick={onGuide}
+        >
+          이동 가이드 보기
+        </ActionButton>
+      ) : null}
       <ActionButton
         variant="neutralSolid"
         size="large"
@@ -132,7 +145,8 @@ export default function NowView() {
     setSelectedDayId,
     setMapDayFilter,
     setSelectedMapStopId,
-    setSelectedNowStopId
+    setSelectedNowStopId,
+    openGuide
   } = useTrip();
 
   const [now, setNow] = useState(() => new Date());
@@ -277,9 +291,11 @@ export default function NowView() {
             <span className="status-pill" id="nowStatus">{STATUS_TEXT[context.mode]}</span>
             <NowActions
               hasMap={hasMap}
+              hasGuide={Boolean(GUIDES[item.id])}
               mapHref={hasMap ? item.map : "#"}
               onMap={() => handleNowAction("map")}
               onSchedule={() => handleNowAction("schedule")}
+              onGuide={() => openGuide(item.id)}
             />
           </div>
         </article>

@@ -1,4 +1,5 @@
 import BottomNavigation from "./components/BottomNavigation.jsx";
+import GuideView from "./components/GuideView.jsx";
 import Header from "./components/Header.jsx";
 import MapView from "./components/MapView.jsx";
 import NowView from "./components/NowView.jsx";
@@ -21,6 +22,7 @@ export default function App() {
           <PrepView />
         </main>
       </div>
+      <GuideView />
       <UpdateNotice />
       <BottomNavigation />
     </TripProvider>

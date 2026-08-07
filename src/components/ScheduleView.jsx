@@ -1,4 +1,5 @@
 import { MAP_COORDINATES, PLACE_DETAILS, TRIP_DAYS } from "../data/trip.js";
+import { GUIDES } from "../data/guides.js";
 import { getAllStops, getDayProgress, getSelectedDay, getStopById } from "../lib/tripUtils.js";
 import { useTrip } from "../state/TripContext.jsx";
 
@@ -75,9 +76,10 @@ function NextStopCard({ day, state }) {
   );
 }
 
-function StopCard({ stop, checked, onToggle, onDetail, onMap }) {
+function StopCard({ stop, checked, onToggle, onDetail, onMap, onGuide }) {
   const isMappable = Boolean(stop.map && stop.address && MAP_COORDINATES[stop.id]);
   const hasDetail = Boolean(PLACE_DETAILS[stop.id]);
+  const hasGuide = Boolean(GUIDES[stop.id]);
 
   return (
     <section className="stop-card">
@@ -93,6 +95,14 @@ function StopCard({ stop, checked, onToggle, onDetail, onMap }) {
         <div className="stop-topline">
           <span className="stop-time">{stop.time}</span>
           <div className="stop-actions">
+            {hasGuide ? (
+              <button
+                className="small-action guide-action"
+                type="button"
+                data-guide-stop-id={stop.id}
+                onClick={() => onGuide(stop.id)}
+              >가이드</button>
+            ) : null}
             {hasDetail ? (
               <button
                 className="small-action"
@@ -138,7 +148,8 @@ export default function ScheduleView() {
     setMapDayFilter,
     setSelectedMapStopId,
     toggleStopChecked,
-    openPlaceDetail
+    openPlaceDetail,
+    openGuide
   } = useTrip();
 
   const isActive = state.activeView === "schedule";
@@ -190,6 +201,7 @@ export default function ScheduleView() {
               onToggle={toggleStopChecked}
               onDetail={handleDetail}
               onMap={handleMap}
+              onGuide={openGuide}
             />
           ))}
         </div>
