@@ -2,7 +2,7 @@
 // (vite.config.js), so every deploy ships a byte-different worker and
 // triggers the update flow.
 const CACHE_NAME = "japan-trip-log-__CACHE_VERSION__";
-const STATIC_ASSETS = ["./manifest.webmanifest", "./icon.svg"];
+const STATIC_ASSETS = ["./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 async function cacheAppShell() {
   const cache = await caches.open(CACHE_NAME);
