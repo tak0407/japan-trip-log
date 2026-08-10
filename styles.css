@@ -1829,6 +1829,45 @@ h2 {
   font-weight: 900;
 }
 
+.guide-index {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.guide-index-item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #ffffff;
+  text-align: left;
+}
+
+.guide-index-item:active {
+  background: var(--trip-brand-weak);
+}
+
+.guide-index-day {
+  color: var(--blue);
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.guide-index-item strong {
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+.guide-index-item small {
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
 .guide-actions {
   display: flex;
   flex-wrap: wrap;

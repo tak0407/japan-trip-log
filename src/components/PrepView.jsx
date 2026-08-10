@@ -1,42 +1,20 @@
-import { useState } from "react";
 import { ActionButton } from "@seed-design/react";
-import { DEFAULT_PACKING } from "../data/trip.js";
+import { GUIDES } from "../data/guides.js";
+import { getCalendarItems } from "../lib/tripUtils.js";
 import { useTrip } from "../state/TripContext.jsx";
 
-function groupByCategory(items) {
-  const grouped = items.reduce((acc, item) => {
-    acc[item.category] = acc[item.category] || [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
-  return Object.entries(grouped);
+// Guides in itinerary order, carrying the day/time of the stop they belong to.
+function getGuideEntries() {
+  return getCalendarItems()
+    .filter((item) => GUIDES[item.id])
+    .map((item) => ({ item, guide: GUIDES[item.id] }));
 }
 
 export default function PrepView() {
-  const {
-    state,
-    togglePackingItem,
-    addPackingItem,
-    removePackingItem,
-    exportData,
-    importData,
-    resetData
-  } = useTrip();
-
-  const [newItem, setNewItem] = useState("");
+  const { state, exportData, importData, resetData, openGuide } = useTrip();
 
   const isActive = state.activeView === "prep";
-  const items = [...DEFAULT_PACKING, ...state.customPacking];
-  const done = items.filter((item) => state.checkedPacking[item.id]).length;
-  const groups = groupByCategory(items);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const label = String(newItem || "").trim();
-    if (!label) return;
-    addPackingItem(label);
-    setNewItem("");
-  };
+  const guideEntries = getGuideEntries();
 
   const handleImportChange = async (event) => {
     const input = event.target;
@@ -91,56 +69,26 @@ export default function PrepView() {
         <article className="panel">
           <div className="panel-heading compact">
             <div>
-              <p className="panel-kicker">준비</p>
-              <h2>준비물</h2>
+              <p className="panel-kicker">이동 가이드</p>
+              <h2>낯선 구간 단계별 안내</h2>
             </div>
-            <span className="status-pill" id="packingStatus">{`${done} / ${items.length}`}</span>
+            <span className="status-pill">{`${guideEntries.length}개`}</span>
           </div>
-          <div className="packing-list" id="packingList">
-            {groups.map(([category, categoryItems]) => (
-              <section className="packing-category" key={category}>
-                <p className="packing-title">{category}</p>
-                {categoryItems.map((item) => {
-                  const checked = Boolean(state.checkedPacking[item.id]);
-                  return (
-                    <div className="check-row" key={item.id}>
-                      <label className="packing-check">
-                        <input
-                          type="checkbox"
-                          data-packing-id={item.id}
-                          checked={checked}
-                          onChange={(event) => togglePackingItem(item.id, event.target.checked)}
-                        />
-                        <span className={checked ? "done" : ""}>{item.label}</span>
-                      </label>
-                      {item.id.startsWith("custom-") ? (
-                        <button
-                          className="packing-delete"
-                          type="button"
-                          data-delete-packing={item.id}
-                          aria-label={`${item.label} 삭제`}
-                          onClick={() => removePackingItem(item.id)}
-                        >
-                          ×
-                        </button>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </section>
+          <div className="guide-index">
+            {guideEntries.map(({ item, guide }) => (
+              <button
+                className="guide-index-item"
+                type="button"
+                data-guide-stop-id={item.id}
+                key={item.id}
+                onClick={() => openGuide(item.id)}
+              >
+                <span className="guide-index-day">{`${item.dayLabel.split(" ")[0]} · ${item.time}`}</span>
+                <strong>{guide.title}</strong>
+                <small>{guide.subtitle}</small>
+              </button>
             ))}
           </div>
-          <form className="inline-form" id="packingForm" onSubmit={handleSubmit}>
-            <input
-              name="item"
-              type="text"
-              maxLength="32"
-              placeholder="추가 준비물"
-              value={newItem}
-              onChange={(event) => setNewItem(event.target.value)}
-            />
-            <ActionButton variant="neutralWeak" size="medium" type="submit">추가</ActionButton>
-          </form>
         </article>
         <details className="panel data-manager">
           <summary>
@@ -162,7 +110,7 @@ export default function PrepView() {
             />
             <ActionButton variant="criticalSolid" type="button" id="resetButton" onClick={resetData}>체크 데이터 초기화</ActionButton>
           </section>
-          <p className="data-manager-note">체크 상태와 직접 추가한 준비물은 현재 기기에 저장됩니다.</p>
+          <p className="data-manager-note">일정 체크 상태는 현재 기기에 저장됩니다.</p>
         </details>
       </div>
     </section>

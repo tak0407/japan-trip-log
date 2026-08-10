@@ -91,41 +91,6 @@ export function TripProvider({ children }) {
     }));
   }, []);
 
-  const togglePackingItem = useCallback((itemId, checked) => {
-    setState((prev) => ({
-      ...prev,
-      checkedPacking: {
-        ...prev.checkedPacking,
-        [itemId]: typeof checked === "boolean" ? checked : !prev.checkedPacking[itemId]
-      }
-    }));
-  }, []);
-
-  const addPackingItem = useCallback((label) => {
-    const trimmed = String(label || "").trim();
-    if (!trimmed) return;
-    setState((prev) => ({
-      ...prev,
-      customPacking: [...prev.customPacking, {
-        id: `custom-${crypto.randomUUID()}`,
-        category: "추가",
-        label: trimmed
-      }]
-    }));
-  }, []);
-
-  const removePackingItem = useCallback((itemId) => {
-    setState((prev) => {
-      const checkedPacking = { ...prev.checkedPacking };
-      delete checkedPacking[itemId];
-      return {
-        ...prev,
-        customPacking: prev.customPacking.filter((item) => item.id !== itemId),
-        checkedPacking
-      };
-    });
-  }, []);
-
   const exportData = useCallback(() => {
     const payload = {
       exportedAt: new Date().toISOString(),
@@ -173,7 +138,7 @@ export function TripProvider({ children }) {
   }, []);
 
   const resetData = useCallback(() => {
-    const confirmed = confirm("일정·준비물 체크 상태와 직접 추가한 준비물을 초기화할까요?");
+    const confirmed = confirm("일정 체크 상태를 초기화할까요?");
     if (!confirmed) return false;
     setState((prev) => ({
       ...prev,
@@ -220,9 +185,6 @@ export function TripProvider({ children }) {
     setSelectedMapStopId,
     setSelectedNowStopId,
     toggleStopChecked,
-    togglePackingItem,
-    addPackingItem,
-    removePackingItem,
     exportData,
     importData,
     resetData,
@@ -240,9 +202,6 @@ export function TripProvider({ children }) {
     setMapDayFilter,
     setSelectedMapStopId,
     toggleStopChecked,
-    togglePackingItem,
-    addPackingItem,
-    removePackingItem,
     exportData,
     importData,
     resetData,

@@ -326,24 +326,6 @@ export const TRIP_DAYS = [
   }
 ];
 
-export const DEFAULT_PACKING = [
-  { id: "passport", category: "출발 전 확인", label: "여권 유효기간 확인" },
-  { id: "reservation", category: "출발 전 확인", label: "항공, 숙소, 투어 예약 화면 저장" },
-  { id: "insurance", category: "출발 전 확인", label: "여행자보험 및 비상 연락처" },
-  { id: "esim", category: "출발 전 확인", label: "eSIM 개통 준비" },
-  { id: "cash", category: "서류", label: "엔화 현금" },
-  { id: "card", category: "서류", label: "해외 결제 카드" },
-  { id: "battery", category: "기기", label: "보조배터리" },
-  { id: "charger", category: "기기", label: "충전기, 케이블" },
-  { id: "adapter", category: "기기", label: "돼지코 어댑터" },
-  { id: "shoes", category: "의류", label: "많이 걸을 신발" },
-  { id: "rain", category: "의류", label: "우산 또는 우비" },
-  { id: "sun", category: "의류", label: "선크림, 모자" },
-  { id: "cooling", category: "기타", label: "휴대용 선풍기 또는 쿨링용품" },
-  { id: "medicine", category: "기타", label: "상비약" },
-  { id: "bag", category: "기타", label: "접이식 쇼핑백" }
-];
-
 export const STORAGE_KEY = "japan-trip-log:v1";
 export const APP_VERSION = 3;
 export const VIEWS = ["now", "schedule", "map", "prep"];

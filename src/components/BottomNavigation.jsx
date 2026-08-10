@@ -1,9 +1,9 @@
 import { Icon } from "@seed-design/react";
 import {
+  IconBookOpenLine,
   IconCalendarLine,
   IconClockLine,
-  IconMapLocationpinLine,
-  IconShoppingbagLine
+  IconMapLocationpinLine
 } from "@karrotmarket/react-monochrome-icon";
 import { useTrip } from "../state/TripContext.jsx";
 
@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   ["now", "지금", IconClockLine],
   ["schedule", "일정", IconCalendarLine],
   ["map", "지도", IconMapLocationpinLine],
-  ["prep", "준비", IconShoppingbagLine]
+  ["prep", "정보", IconBookOpenLine]
 ];
 
 export default function BottomNavigation() {
