@@ -44,9 +44,9 @@ export default function PrepView() {
           </div>
           <div className="reservation-grid">
             <section className="reservation-card">
-              <span>가는 편 · 8월 11일</span>
+              <span>가는 편 · 8월 11일 · 파라타항공</span>
               <strong>WE 501 · 인천 09:50 → 나리타 12:00</strong>
-              <small>비행시간 2시간 10분 · 예약 확정</small>
+              <small>인천 제1터미널 · B21~B32 (8월 10일 조회) · 예약 확정</small>
             </section>
             <section className="reservation-card">
               <span>오는 편 · 8월 15일</span>

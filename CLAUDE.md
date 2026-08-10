@@ -32,7 +32,8 @@ src/lib/tripUtils.js      # derived-data helpers (calendar items, now-context, p
 src/lib/googleMaps.js     # loadGoogleMaps(): injects the Maps JS script once
 src/state/TripContext.jsx # TripProvider / useTrip() — the single source of truth
 src/components/           # Header, NowView, ScheduleView, MapView (renders PlaceDetail),
-                          #        PrepView, BottomNavigation, OfflineBanner, UpdateNotice
+                          #        PrepView, BottomNavigation, OfflineBanner, UpdateNotice,
+                          #        OrientationLock (best-effort portrait lock)
 ```
 
 Conventions to keep:

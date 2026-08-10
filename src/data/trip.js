@@ -69,7 +69,7 @@ export const TRIP_DAYS = [
         mapPlace: "나리타 국제공항",
         address: "〒282-0004 지바현 나리타시 후루고메 1-1",
         map: "https://www.google.com/maps/search/?api=1&query=Narita%20International%20Airport",
-        note: "예약 확정 · 비행시간 2시간 10분"
+        note: "파라타항공 · 인천 제1터미널 · 예약 확정 · 비행시간 2시간 10분"
       },
       {
         id: "d1-asakusa",
