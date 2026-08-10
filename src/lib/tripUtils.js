@@ -104,20 +104,27 @@ export function createTripDate(dayId, minutes) {
 }
 
 export function getCalendarItems() {
-  return TRIP_DAYS.flatMap((day) => day.stops.map((stop, index) => {
-    const startMinutes = parseStopStartMinutes(stop.time, index);
-    const endMinutes = Math.max(startMinutes + 30, parseStopEndMinutes(stop.time, startMinutes));
-    return {
-      ...stop,
-      dayId: day.id,
-      dayLabel: day.label,
-      dayTitle: day.title,
-      startMinutes,
-      endMinutes,
-      startDate: createTripDate(day.id, startMinutes),
-      endDate: createTripDate(day.id, endMinutes)
-    };
-  })).sort((a, b) => a.startDate - b.startDate);
+  return TRIP_DAYS.flatMap((day) => {
+    // Stops are authored in visit order. A time string the parser can't read
+    // (e.g. "저녁") must never sort ahead of the stop before it, so clamp each
+    // start to at least the previous one.
+    let previousStart = -Infinity;
+    return day.stops.map((stop, index) => {
+      const startMinutes = Math.max(previousStart, parseStopStartMinutes(stop.time, index));
+      previousStart = startMinutes;
+      const endMinutes = Math.max(startMinutes + 30, parseStopEndMinutes(stop.time, startMinutes));
+      return {
+        ...stop,
+        dayId: day.id,
+        dayLabel: day.label,
+        dayTitle: day.title,
+        startMinutes,
+        endMinutes,
+        startDate: createTripDate(day.id, startMinutes),
+        endDate: createTripDate(day.id, endMinutes)
+      };
+    });
+  }).sort((a, b) => a.startDate - b.startDate);
 }
 
 export function getNowContext(selectedNowStopId, now = new Date()) {

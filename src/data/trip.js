@@ -85,7 +85,7 @@ export const TRIP_DAYS = [
       },
       {
         id: "d1-dinner",
-        time: "저녁",
+        time: "16:30-17:40",
         title: "저녁식사",
         area: "긴자 / 츠키지마 / 도쿄역 / 우에노",
         type: "미정",
@@ -104,7 +104,7 @@ export const TRIP_DAYS = [
       },
       {
         id: "d1-odaiba",
-        time: "TeamLab 이후",
+        time: "20:30",
         title: "오다이바 야경",
         area: "오다이바",
         type: "야경",
@@ -268,12 +268,12 @@ export const TRIP_DAYS = [
     dateText: "2026년 8월 14일 금요일",
     stops: [
       { id: "d4-tokyo-station", time: "08:00", title: "후지산 투어 출발", area: "도쿄역", type: "투어", note: "도쿄역 출발" },
-      { id: "d4-fuji-tour", time: "종일", title: "후지산 투어", area: "후지산", type: "관광" },
+      { id: "d4-fuji-tour", time: "08:00-18:50", title: "후지산 투어", area: "후지산", type: "관광" },
       { id: "d4-tour-end", time: "18:50", title: "도쿄역 해산", area: "도쿄역", type: "이동" },
-      { id: "d4-shopping", time: "저녁", title: "쇼핑", area: "도쿄", type: "쇼핑" },
+      { id: "d4-shopping", time: "19:00-20:20", title: "쇼핑", area: "도쿄", type: "쇼핑" },
       {
         id: "d4-skytree",
-        time: "밤",
+        time: "20:40",
         title: "도쿄 스카이트리 야경",
         area: "오시아게",
         type: "야경",
@@ -291,21 +291,21 @@ export const TRIP_DAYS = [
     stops: [
       {
         id: "d5-morning",
-        time: "오전",
+        time: "08:00-09:30",
         title: "여유 시간",
         area: "우에노",
         type: "자유"
       },
       {
         id: "d5-checkout",
-        time: "체크아웃",
+        time: "09:30-10:00",
         title: "숙소 체크아웃",
         area: "우에노",
         type: "정리"
       },
       {
         id: "d5-airport",
-        time: "출발 전",
+        time: "10:30-11:30",
         title: "나리타 공항 이동 · 출국 수속",
         area: "우에노 → 나리타공항",
         type: "이동",
