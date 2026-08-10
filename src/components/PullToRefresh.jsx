@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  IconArrowClockwiseCircularLine,
+  IconCheckmarkLine,
+  IconChevronDownSmallLine
+} from "@karrotmarket/react-monochrome-icon";
 import { useTrip } from "../state/TripContext.jsx";
 
 const TRIGGER_DISTANCE = 72; // px pulled before a release refreshes
 const MAX_DISTANCE = 110; // rubber-band ceiling
 const RESISTANCE = 0.5;
 const MIN_SPINNER_MS = 700; // keep the spinner visible long enough to read
+const COMPLETE_MS = 520;
 const PULL_VIEWS = ["now", "schedule", "prep"]; // the map owns its own gestures
 
 // Installed PWAs have no browser pull-to-refresh, so we provide our own.
@@ -19,9 +25,12 @@ export default function PullToRefresh() {
   const { state, placeDetail, guideStopId, requestRefresh } = useTrip();
   const [distance, setDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [completed, setCompleted] = useState(false);
 
   const dragRef = useRef(null);
   const frameRef = useRef(0);
+  const finishTimerRef = useRef(0);
+  const dismissTimerRef = useRef(0);
   const refreshingRef = useRef(false);
   const distanceRef = useRef(0);
 
@@ -37,7 +46,10 @@ export default function PullToRefresh() {
 
   const runRefresh = useCallback(async () => {
     if (refreshingRef.current) return;
+    window.clearTimeout(finishTimerRef.current);
+    window.clearTimeout(dismissTimerRef.current);
     refreshingRef.current = true;
+    setCompleted(false);
     setRefreshing(true);
     setPullDistance(TRIGGER_DISTANCE);
     const startedAt = Date.now();
@@ -45,10 +57,14 @@ export default function PullToRefresh() {
       await requestRefresh();
     } finally {
       const elapsed = Date.now() - startedAt;
-      window.setTimeout(() => {
+      finishTimerRef.current = window.setTimeout(() => {
         refreshingRef.current = false;
         setRefreshing(false);
-        setPullDistance(0);
+        setCompleted(true);
+        dismissTimerRef.current = window.setTimeout(() => {
+          setCompleted(false);
+          setPullDistance(0);
+        }, COMPLETE_MS);
       }, Math.max(0, MIN_SPINNER_MS - elapsed));
     }
   }, [requestRefresh, setPullDistance]);
@@ -108,20 +124,46 @@ export default function PullToRefresh() {
     };
   }, [enabled, runRefresh, setPullDistance]);
 
+  useEffect(() => () => {
+    window.clearTimeout(finishTimerRef.current);
+    window.clearTimeout(dismissTimerRef.current);
+  }, []);
+
   const ready = distance >= TRIGGER_DISTANCE;
-  const visible = distance > 0 || refreshing;
+  const visible = distance > 0 || refreshing || completed;
+  const progress = Math.min(1, distance / TRIGGER_DISTANCE);
+  const pullOffset = Math.min(10, (distance * 0.75) - 40);
+  const label = completed
+    ? "최신 상태예요"
+    : refreshing
+      ? "최신 일정 확인 중"
+      : ready
+        ? "놓으면 새로고침"
+        : "아래로 당겨 새로고침";
+
+  const PullIcon = completed
+    ? IconCheckmarkLine
+    : refreshing || ready
+      ? IconArrowClockwiseCircularLine
+      : IconChevronDownSmallLine;
 
   return (
     <div
-      className={`pull-refresh${refreshing ? " is-refreshing" : ""}${ready ? " is-ready" : ""}`}
+      className={`pull-refresh${refreshing ? " is-refreshing" : ""}${ready ? " is-ready" : ""}${completed ? " is-complete" : ""}`}
       id="pullRefresh"
       aria-hidden={!visible}
       hidden={!visible}
-      style={{ "--pull-distance": `${distance}px`, "--pull-progress": Math.min(1, distance / TRIGGER_DISTANCE) }}
+      style={{
+        "--pull-angle": `${progress * 360}deg`,
+        "--pull-offset": `${pullOffset}px`,
+        "--pull-progress": progress
+      }}
     >
-      <span className="pull-refresh-spinner" aria-hidden="true" />
+      <span className="pull-refresh-orb" aria-hidden="true">
+        <PullIcon className="pull-refresh-icon" size={19} />
+      </span>
       <span className="pull-refresh-label" role="status">
-        {refreshing ? "새로고침 중" : ready ? "놓으면 새로고침" : "당겨서 새로고침"}
+        {label}
       </span>
     </div>
   );
