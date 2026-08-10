@@ -4,7 +4,9 @@ import Header from "./components/Header.jsx";
 import MapView from "./components/MapView.jsx";
 import NowView from "./components/NowView.jsx";
 import OfflineBanner from "./components/OfflineBanner.jsx";
+import OrientationLock from "./components/OrientationLock.jsx";
 import PrepView from "./components/PrepView.jsx";
+import PullToRefresh from "./components/PullToRefresh.jsx";
 import ScheduleView from "./components/ScheduleView.jsx";
 import UpdateNotice from "./components/UpdateNotice.jsx";
 import { TripProvider } from "./state/TripContext.jsx";
@@ -12,7 +14,9 @@ import { TripProvider } from "./state/TripContext.jsx";
 export default function App() {
   return (
     <TripProvider>
+      <OrientationLock />
       <OfflineBanner />
+      <PullToRefresh />
       <div className="app-shell">
         <Header />
         <main className="tab-content">

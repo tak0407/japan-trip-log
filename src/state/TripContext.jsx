@@ -52,6 +52,7 @@ export function TripProvider({ children }) {
   const [selectedNowStopId, setSelectedNowStopId] = useState("");
   const [placeDetail, setPlaceDetail] = useState(null);
   const [guideStopId, setGuideStopId] = useState("");
+  const [refreshToken, setRefreshToken] = useState(0);
   const stateRef = useRef(state);
 
   stateRef.current = state;
@@ -149,6 +150,19 @@ export function TripProvider({ children }) {
     return true;
   }, []);
 
+  // Pull-to-refresh: re-read the clock everywhere and ask the service worker
+  // to look for a new deploy. Views that show "now" watch refreshToken.
+  const requestRefresh = useCallback(async () => {
+    setRefreshToken((prev) => prev + 1);
+    if (!("serviceWorker" in navigator)) return;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      await registration?.update();
+    } catch (error) {
+      console.warn("Failed to check for updates", error);
+    }
+  }, []);
+
   const openGuide = useCallback((stopId) => {
     if (!stopId) return;
     setGuideStopId(stopId);
@@ -177,6 +191,8 @@ export function TripProvider({ children }) {
     selectedNowStopId,
     placeDetail,
     guideStopId,
+    refreshToken,
+    requestRefresh,
     openGuide,
     closeGuide,
     setActiveView,
@@ -195,6 +211,8 @@ export function TripProvider({ children }) {
     selectedNowStopId,
     placeDetail,
     guideStopId,
+    refreshToken,
+    requestRefresh,
     openGuide,
     closeGuide,
     setActiveView,

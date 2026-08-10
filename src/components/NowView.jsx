@@ -146,10 +146,17 @@ export default function NowView() {
     setMapDayFilter,
     setSelectedMapStopId,
     setSelectedNowStopId,
-    openGuide
+    openGuide,
+    refreshToken
   } = useTrip();
 
   const [now, setNow] = useState(() => new Date());
+
+  // Pull-to-refresh re-reads the clock so the current/next stop is up to date.
+  useEffect(() => {
+    if (refreshToken === 0) return;
+    setNow(new Date());
+  }, [refreshToken]);
 
   // app.js: setInterval(() => { if (!document.hidden && activeView === "now") renderNow(); }, 30000)
   useEffect(() => {

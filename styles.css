@@ -1829,6 +1829,67 @@ h2 {
   font-weight: 900;
 }
 
+/* ---- pull to refresh (installed PWA only) ---- */
+
+.pull-refresh {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 4px);
+  left: 50%;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px 7px 11px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 8px 24px rgba(29, 36, 40, .16);
+  opacity: clamp(0, var(--pull-progress, 0), 1);
+  transform: translate(-50%, calc(var(--pull-distance, 0px) - 14px));
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.pull-refresh[hidden] {
+  display: none;
+}
+
+.pull-refresh-label {
+  color: var(--ink);
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pull-refresh-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid color-mix(in srgb, var(--blue) 25%, #ffffff);
+  border-radius: 50%;
+  border-top-color: var(--blue);
+  transform: rotate(calc(var(--pull-progress, 0) * 320deg));
+}
+
+.pull-refresh.is-ready .pull-refresh-label {
+  color: var(--blue);
+}
+
+.pull-refresh.is-refreshing .pull-refresh-spinner {
+  animation: pull-refresh-spin 700ms linear infinite;
+}
+
+@keyframes pull-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pull-refresh.is-refreshing .pull-refresh-spinner {
+    animation: none;
+  }
+}
+
 .guide-index {
   display: grid;
   gap: 8px;
