@@ -89,7 +89,7 @@ export const TRIP_DAYS = [
         title: "저녁식사",
         area: "긴자 / 츠키지마 / 도쿄역 / 우에노",
         type: "미정",
-        note: "어디서 먹을지 아직 정하지 않음"
+        note: "츠키지 장외시장은 저녁 영업 안 함 · 추천: 긴자 이른 저녁 → 유라쿠초선으로 도요스 이동 (약 25분)"
       },
       {
         id: "d1-teamlab",
@@ -100,7 +100,7 @@ export const TRIP_DAYS = [
         mapPlace: "teamLab Planets TOKYO",
         address: "〒135-0061 도쿄도 고토구 도요스 6-1-16",
         map: "https://www.google.com/maps/search/?api=1&query=teamLab%20Planets%20TOKYO%206-1-16%20Toyosu",
-        note: "각자 예약 완료 · 현장에서 eSIM 받기"
+        note: "각자 예약 완료 · eSIM 수령 · 맨발 관람(물에 들어감) · 예약 시간 15분 전 도착"
       },
       {
         id: "d1-odaiba",
@@ -196,7 +196,8 @@ export const TRIP_DAYS = [
         type: "전망",
         mapPlace: "요코하마항 오산바시 국제여객터미널",
         address: "〒231-0002 가나가와현 요코하마시 나카구 가이간도리 1-1-4",
-        map: "https://www.google.com/maps/search/?api=1&query=Yokohama%20Osanbashi%20Pier%201-1-4%20Kaigandori"
+        map: "https://www.google.com/maps/search/?api=1&query=Yokohama%20Osanbashi%20Pier%201-1-4%20Kaigandori",
+        note: "8월 중순 일몰은 18:30 전후 · 노을 보려면 18:40까지 머무는 편이 좋음"
       },
       { id: "d2-dinner", time: "18:10-19:00", title: "저녁식사", area: "오산바시 근처", type: "식사" },
       {
@@ -210,7 +211,7 @@ export const TRIP_DAYS = [
         map: "https://www.google.com/maps/search/?api=1&query=Cosmo%20Clock%2021%20Yokohama",
         note: "관람차 한 바퀴 약 15분 · 산책하며 요코하마역으로 이동"
       },
-      { id: "d2-return", time: "20:30", title: "요코하마 출발", area: "요코하마 -> 우에노", type: "이동" },
+      { id: "d2-return", time: "20:30", title: "요코하마 출발", area: "요코하마 -> 우에노", type: "이동", note: "미나토미라이역에서 걸어 요코하마역까지 20분 이상 · 미나토미라이선 이용이 편함" },
       { id: "d2-hotel-arrive", time: "21:20-21:30", title: "우에노 도착", area: "우에노", type: "이동" }
     ]
   },
@@ -220,7 +221,7 @@ export const TRIP_DAYS = [
     title: "G-Cans + 철도박물관 + 시부야",
     dateText: "2026년 8월 13일 목요일",
     stops: [
-      { id: "d3-leave", time: "07:30", title: "우에노 출발", area: "우에노 -> G-Cans", type: "이동", note: "우쓰노미야선 · 도부 어반파크라인 · 버스 환승" },
+      { id: "d3-leave", time: "07:30", title: "우에노 출발", area: "우에노 -> G-Cans", type: "이동", note: "우쓰노미야선으로 오미야 → 도부 어반파크라인 → 미나미사쿠라이 · 역 북구에서 버스(배차 적음, 안 맞으면 택시 약 10분) → 용Q관" },
       {
         id: "d3-gcans-tour",
         time: "10:00-10:55",
@@ -230,9 +231,9 @@ export const TRIP_DAYS = [
         mapPlace: "류큐칸(龍Q館)",
         address: "〒344-0111 사이타마현 가스카베시 가미카나사키 720",
         map: "https://www.google.com/maps/search/?api=1&query=Ryukyukan%20720%20Kamikanasaki%20Kasukabe",
-        note: "예약 완료"
+        note: "예약 완료 · 예약번호 wqFamOfK4 (10:00)"
       },
-      { id: "d3-omiya-lunch", time: "11:40", title: "오미야역 도착 · 점심", area: "오미야", type: "식사" },
+      { id: "d3-omiya-lunch", time: "11:40", title: "오미야역 도착 · 점심", area: "오미야", type: "식사", note: "실제 도착은 12시 전후 예상 · 에키벤 사서 철도박물관 안에서 먹는 것도 방법" },
       {
         id: "d3-railway",
         time: "12:30-15:30",
@@ -244,7 +245,7 @@ export const TRIP_DAYS = [
         map: "https://www.google.com/maps/search/?api=1&query=The%20Railway%20Museum%203-47%20Onaricho%20Omiya%20Saitama",
         note: "예약 완료 · 오미야역에서 뉴셔틀 한 정거장"
       },
-      { id: "d3-monja", time: "17:00", title: "몬자야키 저녁식사", area: "츠키시마", type: "식사", note: "시부야까지 약 20분" },
+      { id: "d3-monja", time: "17:00", title: "몬자야키 저녁식사", area: "츠키시마", type: "식사", note: "오미야 → 츠키시마 약 1시간(15:30 출발 시 17:00 도착 빠듯) · 츠키시마→시부야는 20분이 아니라 약 30-35분" },
       {
         id: "d3-shibuya",
         time: "18:00",
