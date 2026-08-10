@@ -245,10 +245,10 @@ export const TRIP_DAYS = [
         map: "https://www.google.com/maps/search/?api=1&query=The%20Railway%20Museum%203-47%20Onaricho%20Omiya%20Saitama",
         note: "예약 완료 · 오미야역에서 뉴셔틀 한 정거장"
       },
-      { id: "d3-monja", time: "17:00", title: "몬자야키 저녁식사", area: "츠키시마", type: "식사", note: "오미야 → 츠키시마 약 1시간(15:30 출발 시 17:00 도착 빠듯) · 츠키시마→시부야는 20분이 아니라 약 30-35분" },
+      { id: "d3-monja", time: "17:30-18:45", title: "몬자야키 저녁식사", area: "츠키시마", type: "식사", note: "오미야에서 약 1시간 · 뉴셔틀 환승 시간까지 포함해 17:30 도착 기준" },
       {
         id: "d3-shibuya",
-        time: "18:00",
+        time: "19:20",
         title: "시부야 관광",
         area: "시부야",
         type: "관광",
@@ -256,6 +256,7 @@ export const TRIP_DAYS = [
         address: "도쿄도 시부야구 도겐자카 2-1",
         map: "https://www.google.com/maps/search/?api=1&query=Hachiko%20Statue%202-1%20Dogenzaka%20Shibuya%20Tokyo",
         items: ["하치코 동상", "스크램블 교차로", "시부야 야경"],
+        note: "츠키시마에서 약 30-35분 · 어두워진 뒤 도착이라 야경 보기 좋음",
         subPlaces: SHIBUYA_SUB_PLACES
       }
     ]
